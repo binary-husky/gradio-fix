@@ -1,6 +1,7 @@
 {
 	"common": {
 		"built_with_gradio": "使用Gradio构建",
+		"Github_Repository": "前往Github仓库",
 		"clear": "清除",
 		"or": "或",
 		"submit": "提交"

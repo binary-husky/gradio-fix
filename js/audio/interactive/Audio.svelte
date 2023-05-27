@@ -42,7 +42,7 @@
 	let player: HTMLAudioElement;
 	let inited = false;
 	let crop_values: [number, number] = [0, 100];
-	const STREAM_TIMESLICE = 500;
+	const STREAM_TIMESLICE = 200;
 	const NUM_HEADER_BYTES = 44;
 	let audio_chunks: Blob[] = [];
 	let module_promises: [

@@ -29,6 +29,7 @@
 	"common": {
 		"built_with": "built with",
 		"built_with_gradio": "Built with Gradio",
+		"Github_Repository": "Github Repository",
 		"clear": "Clear",
 		"download": "Download",
 		"edit": "Edit",
