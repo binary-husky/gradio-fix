@@ -37,7 +37,7 @@
 	let player;
 	let inited = false;
 	let crop_values = [0, 100];
-	const STREAM_TIMESLICE = 500;
+	const STREAM_TIMESLICE = 200;
 	const NUM_HEADER_BYTES = 44;
 	let audio_chunks: Array<Blob> = [];
 	let audio_blob;
