@@ -31,7 +31,7 @@ from gradio.deprecation import warn_deprecation, warn_style_method_deprecation
 from gradio.events import (
     EventListener,
 )
-from gradio.layouts import Column, Form, Row
+from gradio.layouts import Column, Form, Row, Floating
 
 if TYPE_CHECKING:
     from typing import TypedDict
