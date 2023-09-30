@@ -54,6 +54,7 @@
 		"@gradio/plot": "workspace:^",
 		"@gradio/radio": "workspace:^",
 		"@gradio/row": "workspace:^",
+		"@gradio/floating": "workspace:^",
 		"@gradio/slider": "workspace:^",
 		"@gradio/state": "workspace:^",
 		"@gradio/statustracker": "workspace:^",

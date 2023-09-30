@@ -11,6 +11,7 @@
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let mode: "static" | "dynamic" = "dynamic";
 	export let size: "sm" | "lg" = "lg";
+	export let info_str: string | null = null;
 	export let scale: number | null = null;
 	export let icon: string | null = null;
 	export let link: string | null = null;
@@ -27,6 +28,7 @@
 	{variant}
 	{elem_id}
 	{elem_classes}
+	{info_str}
 	{size}
 	{scale}
 	{link}

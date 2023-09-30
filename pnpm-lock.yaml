@@ -460,6 +460,9 @@ importers:
       '@gradio/row':
         specifier: workspace:^
         version: link:../row
+      '@gradio/floating':
+        specifier: workspace:^
+        version: link:../floating
       '@gradio/slider':
         specifier: workspace:^
         version: link:../slider
@@ -1047,6 +1050,12 @@ importers:
         version: link:../utils
 
   js/row:
+    devDependencies:
+      '@gradio/image':
+        specifier: workspace:^
+        version: link:../image
+
+  js/floating:
     devDependencies:
       '@gradio/image':
         specifier: workspace:^

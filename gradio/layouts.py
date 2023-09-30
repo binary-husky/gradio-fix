@@ -14,6 +14,78 @@ if TYPE_CHECKING:
 
 set_documentation_group("layout")
 
+@document()
+class Floating(Updateable, BlockContext):
+    """
+    Floating is a layout element within Blocks that renders all children in absolute screen space.
+    Example:
+        with gr.Blocks() as demo:
+            with gr.Floating():
+                gr.Image("lion.jpg", scale=2)
+                gr.Image("tiger.jpg", scale=1)
+        demo.launch()
+    Guides: controlling-layout
+    """
+
+    def __init__(
+        self,
+        *,
+        variant: Literal["default", "panel", "compact"] = "default",
+        visible: bool = True,
+        init_x: str | None = "0%",
+        init_y: str | None = "0%",
+        width: str | None = "10%",
+        len_y: str | None = "10%",
+        elem_id: str | None = None,
+        elem_classes: list[str] | str | None = None,
+        equal_height: bool = True,
+        **kwargs,
+    ):
+        """
+        Parameters:
+            variant: floating type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'compact' (rounded corners and no internal gap).
+            visible: If False, floating will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
+            equal_height: If True, makes every child element have equal height
+        """
+        self.variant = variant
+        self.init_x = init_x
+        self.init_y = init_y
+        self.width = width
+        self.len_y = len_y
+        self.equal_height = equal_height
+        if variant == "compact":
+            self.allow_expected_parents = False
+        BlockContext.__init__(
+            self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
+        )
+
+    @staticmethod
+    def update(
+        visible: bool | None = None,
+    ):
+        return {
+            "visible": visible,
+            "__type__": "update",
+        }
+
+    def style(
+        self,
+        *,
+        equal_height: bool | None = None,
+        **kwargs,
+    ):
+        """
+        Styles the Floating.
+        Parameters:
+            equal_height: If True, makes every child element have equal height
+        """
+        warn_style_method_deprecation()
+        if equal_height is not None:
+            self.equal_height = equal_height
+        return self
+
 
 @document()
 class Row(Updateable, BlockContext):

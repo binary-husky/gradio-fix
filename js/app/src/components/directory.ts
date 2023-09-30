@@ -103,6 +103,9 @@ export const component_map = {
 	row: {
 		static: () => import("@gradio/row/static")
 	},
+	floating: {
+		static: () => import("@gradio/floating/static")
+	},
 	slider: {
 		static: () => import("@gradio/slider/static"),
 		interactive: () => import("@gradio/slider/interactive")

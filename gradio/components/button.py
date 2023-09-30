@@ -37,6 +37,7 @@ class Button(Clickable, IOComponent, StringSerializable):
         interactive: bool = True,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
+        info_str: str | None = None,
         scale: int | None = None,
         min_width: int | None = None,
         **kwargs,
@@ -73,6 +74,7 @@ class Button(Clickable, IOComponent, StringSerializable):
         self.size = size
         self.icon = icon
         self.link = link
+        self.info_str = info_str
 
     @staticmethod
     def update(
