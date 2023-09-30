@@ -6,6 +6,7 @@
 	export let visible = true;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let size: "sm" | "lg" = "lg";
+	export let info_str: string | null = null;
 	export let value: string | null = null;
 	export let link: string | null = null;
 	export let icon: string | null = null;
@@ -15,6 +16,7 @@
 	export let root = "";
 	export let root_url: string | null = null;
 	$: icon_path = get_fetchable_url_or_file(icon, root, root_url);
+	let isHovered = false;
 </script>
 
 {#if link && link.length > 0}
@@ -41,7 +43,10 @@
 {:else}
 	<button
 		on:click
+		on:mouseover={() => (isHovered = true)}
+		on:mouseleave={() => (isHovered = false)}
 		class:hidden={!visible}
+		title={(info_str && info_str.length > 0)?info_str:value}
 		class="{size} {variant} {elem_classes.join(' ')}"
 		style:flex-grow={scale}
 		style:width={scale === 0 ? "fit-content" : null}
@@ -59,6 +64,27 @@
 {/if}
 
 <style>
+
+	button:after {
+		content: attr(title);
+		position: fixed;
+		right: 0%;
+		bottom: 0%; 
+		visibility: hidden;
+		z-index: 20;
+		border-color: var(--button-cancel-border-color-hover);
+		background: var(--button-cancel-background-fill-hover);
+		color: var(--button-cancel-text-color-hover);
+		border-radius: var(--button-small-radius);
+		padding: var(--button-small-padding);
+		font-weight: var(--button-small-text-weight);
+		font-size: var(--button-small-text-size);
+	}
+
+	button:hover:after {
+		visibility: visible;
+	}
+	
 	button,
 	a {
 		display: inline-flex;

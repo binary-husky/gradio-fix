@@ -19,6 +19,11 @@
 			control: { type: "select" },
 			defaultValue: "primary"
 		},
+		info_str: {
+			description: "Information about this button",
+			control: { type: "string" },
+			defaultValue: ""
+		},
 		size: {
 			options: ["sm", "lg"],
 			description: "The size of the button",
