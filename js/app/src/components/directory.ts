@@ -29,6 +29,7 @@ export const component_map = {
 	plot: () => import("./Plot"),
 	radio: () => import("./Radio"),
 	row: () => import("./Row"),
+	floating: () => import("./Floating"),
 	slider: () => import("./Slider"),
 	state: () => import("./State"),
 	statustracker: () => import("./StatusTracker"),
