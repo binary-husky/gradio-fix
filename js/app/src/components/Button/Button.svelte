@@ -7,15 +7,18 @@
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
+	export let info_str: string | null = null;
 	export let value: string;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let mode: "static" | "dynamic" = "dynamic";
 </script>
 
 <Button
+	{value}
 	{variant}
 	{elem_id}
 	{elem_classes}
+	{info_str}
 	{style}
 	{visible}
 	disabled={mode === "static"}

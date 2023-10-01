@@ -2,9 +2,11 @@
 	import { get_styles } from "../../utils";
 	import type { Styles } from "@gradio/utils";
 
+	export let value: string = "";
 	export let style: Styles = {};
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
+	export let info_str: string | null = null;
 	export let visible: boolean = true;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let size: "sm" | "lg" = style.size || "lg";
@@ -17,6 +19,7 @@
 	on:click
 	class:hide={!visible}
 	class="{size} {variant} {elem_classes.join(' ')}"
+	title={info_str && info_str.length > 0 ? info_str : value}
 	style={styles}
 	id={elem_id}
 	{disabled}
@@ -25,6 +28,26 @@
 </button>
 
 <style>
+	button:after {
+		content: attr(title);
+		position: fixed;
+		right: 0%;
+		bottom: 0%;
+		visibility: hidden;
+		z-index: 20;
+		border-color: var(--button-cancel-border-color-hover);
+		background: var(--button-cancel-background-fill-hover);
+		color: var(--button-cancel-text-color-hover);
+		border-radius: var(--button-small-radius);
+		padding: var(--button-small-padding);
+		font-weight: var(--button-small-text-weight);
+		font-size: var(--button-small-text-size);
+	}
+
+	button:hover:after {
+		visibility: visible;
+	}
+
 	button {
 		display: inline-flex;
 		justify-content: center;

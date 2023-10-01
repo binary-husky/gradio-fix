@@ -3340,6 +3340,7 @@ class Button(Clickable, IOComponent, StringSerializable):
         variant: str = "secondary",
         visible: bool = True,
         interactive: bool = True,
+        info_str: str = "",
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         **kwargs,
@@ -3366,6 +3367,7 @@ class Button(Clickable, IOComponent, StringSerializable):
             warnings.warn("'plain' variant deprecated, using 'secondary' instead.")
             variant = "secondary"
         self.variant = variant
+        self.info_str = info_str
 
     def get_config(self):
         return {

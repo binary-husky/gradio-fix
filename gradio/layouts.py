@@ -26,7 +26,7 @@ class Floating(BlockContext):
     def __init__(
         self,
         *,
-        variant: Literal["default", "panel", "compact"] = "default",
+        variant: str = "default",
         visible: bool = True,
         init_x: str | None = "0%",
         init_y: str | None = "0%",
