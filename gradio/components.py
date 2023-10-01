@@ -3340,7 +3340,7 @@ class Button(Clickable, IOComponent, StringSerializable):
         variant: str = "secondary",
         visible: bool = True,
         interactive: bool = True,
-        info_str: str = "",
+        info_str: str | None = None,
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         **kwargs,
@@ -3372,6 +3372,7 @@ class Button(Clickable, IOComponent, StringSerializable):
     def get_config(self):
         return {
             "value": self.value,
+            "info_str": self.info_str,
             "variant": self.variant,
             "interactive": self.interactive,
             **Component.get_config(self),
@@ -3381,12 +3382,14 @@ class Button(Clickable, IOComponent, StringSerializable):
     def update(
         value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
         variant: str | None = None,
+        info_str: str | None = None,
         visible: bool | None = None,
         interactive: bool | None = None,
     ):
         return {
             "variant": variant,
             "visible": visible,
+            "info_str": info_str,
             "value": value,
             "interactive": interactive,
             "__type__": "update",

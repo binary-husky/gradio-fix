@@ -15,7 +15,7 @@
 		init_x,
 		init_y,
 		width,
-		len_y,
+		len_y
 	};
 
 	$: cssVarStyles = Object.entries(styles)
@@ -64,11 +64,11 @@
 	class={elem_classes.join(" ")}
 	on:mousedown={handleMouseDown}
 >
+	{init_x}
 	<slot />
 </div>
 
 <style>
-
 	.hide {
 		display: none;
 	}

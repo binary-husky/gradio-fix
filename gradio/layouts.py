@@ -57,11 +57,31 @@ class Floating(BlockContext):
             self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
         )
 
+    def get_config(self):
+        return {
+            "type": "floating",
+            "variant": self.variant,
+            "init_x": self.init_x,
+            "init_y": self.init_y,
+            "width": self.width,
+            "len_y": self.len_y,
+            **super().get_config(),
+        }
+
     @staticmethod
     def update(
         visible: bool | None = None,
+        init_x: str | None = "0%",
+        init_y: str | None = "0%",
+        width: str | None = "10%",
+        len_y: str | None = "10%",
     ):
         return {
+            "visible": visible,
+            "init_x": init_x,
+            "init_y": init_y,
+            "width": width,
+            "len_y": len_y,
             "visible": visible,
             "__type__": "update",
         }
