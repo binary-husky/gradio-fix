@@ -1055,6 +1055,12 @@ importers:
         specifier: workspace:^
         version: link:../image
 
+  js/floating:
+    devDependencies:
+      '@gradio/image':
+        specifier: workspace:^
+        version: link:../image
+
   js/slider:
     dependencies:
       '@gradio/atoms':

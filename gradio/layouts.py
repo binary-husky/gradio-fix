@@ -32,6 +32,10 @@ class Floating(Updateable, BlockContext):
         *,
         variant: Literal["default", "panel", "compact"] = "default",
         visible: bool = True,
+        init_x: str | None = "0%",
+        init_y: str | None = "0%",
+        width: str | None = "10%",
+        len_y: str | None = "10%",
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         equal_height: bool = True,
@@ -46,6 +50,10 @@ class Floating(Updateable, BlockContext):
             equal_height: If True, makes every child element have equal height
         """
         self.variant = variant
+        self.init_x = init_x
+        self.init_y = init_y
+        self.width = width
+        self.len_y = len_y
         self.equal_height = equal_height
         if variant == "compact":
             self.allow_expected_parents = False
