@@ -45,32 +45,30 @@
 	});
 
 	function change_tab(id: object | string | number) {
+		console.log($selected_tab, id, $selected_tab === id);
+		if ($selected_tab === id) {
+			$selected_tab = "";
+		} else {
+			$selected_tab = id;
+		}
 		selected = id;
-		$selected_tab = id;
+		// $selected_tab = id;
 		$selected_tab_index = tabs.findIndex((t) => t.id === id);
 		dispatch("change");
 	}
-
-	$: selected !== null && change_tab(selected);
 </script>
 
 <div class="tabs {elem_classes.join(' ')}" class:hide={!visible} id={elem_id}>
 	<div class="tab-nav scroll-hide">
 		{#each tabs as t, i (t.id)}
-			{#if t.id === $selected_tab}
-				<button class="selected">
-					{t.name}
-				</button>
-			{:else}
-				<button
-					on:click={() => {
-						change_tab(t.id);
-						dispatch("select", { value: t.name, index: i });
-					}}
-				>
-					{t.name}
-				</button>
-			{/if}
+			<button
+				on:click={() => {
+					change_tab(t.id);
+					dispatch("select", { value: t.name, index: i });
+				}}
+			>
+				{t.name}
+			</button>
 		{/each}
 	</div>
 	<slot />

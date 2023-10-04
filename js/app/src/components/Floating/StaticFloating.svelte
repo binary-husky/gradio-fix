@@ -64,7 +64,6 @@
 	class={elem_classes.join(" ")}
 	on:mousedown={handleMouseDown}
 >
-	{init_x}
 	<slot />
 </div>
 
@@ -100,8 +99,7 @@
 	.floating-component {
 		position: fixed;
 		z-index: 100;
-		border: 1px solid #000;
-		padding: 10px;
+		padding: 5px;
 		border-radius: 5px;
 		width: var(--width);
 		left: var(--init_x);
