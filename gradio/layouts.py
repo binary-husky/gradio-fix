@@ -72,17 +72,8 @@ class Floating(BlockContext):
     @staticmethod
     def update(
         visible: bool | None = None,
-        init_x: str | None = "0%",
-        init_y: str | None = "0%",
-        width: str | None = "10%",
-        drag: str | None = "everywhere",
     ):
         return {
-            "visible": visible,
-            "init_x": init_x,
-            "init_y": init_y,
-            "width": width,
-            "drag": drag,
             "visible": visible,
             "__type__": "update",
         }
