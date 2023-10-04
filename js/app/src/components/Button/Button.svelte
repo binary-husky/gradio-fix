@@ -8,6 +8,7 @@
 	export let elem_classes: Array<string> = [];
 	export let visible: boolean = true;
 	export let info_str: string | null = null;
+	export let proxy_of: string | null = null;
 	export let value: string;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let mode: "static" | "dynamic" = "dynamic";
@@ -19,6 +20,7 @@
 	{elem_id}
 	{elem_classes}
 	{info_str}
+	{proxy_of}
 	{style}
 	{visible}
 	disabled={mode === "static"}

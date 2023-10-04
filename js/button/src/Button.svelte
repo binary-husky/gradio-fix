@@ -7,16 +7,27 @@
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
 	export let info_str: string | null = null;
+	export let proxy_of: string | null = null;
 	export let visible: boolean = true;
 	export let variant: "primary" | "secondary" | "stop" = "secondary";
 	export let size: "sm" | "lg" = style.size || "lg";
 	export let disabled: boolean = false;
+
+	function handleProxyClick(proxy_of: string | null = null) {
+		if (proxy_of) {
+			const elem = document.getElementById(proxy_of);
+			if (elem) {
+				elem.click();
+			}
+		}
+	}
 
 	$: ({ styles } = get_styles(style, ["full_width"]));
 </script>
 
 <button
 	on:click
+	on:click={() => handleProxyClick(proxy_of)}
 	class:hide={!visible}
 	class="{size} {variant} {elem_classes.join(' ')}"
 	title={info_str && info_str.length > 0 ? info_str : value}

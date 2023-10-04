@@ -45,7 +45,7 @@
 	});
 
 	function change_tab(id: object | string | number) {
-		console.log($selected_tab, id, $selected_tab === id);
+		// console.log($selected_tab, id, $selected_tab === id);
 		if ($selected_tab === id) {
 			$selected_tab = "";
 		} else {
