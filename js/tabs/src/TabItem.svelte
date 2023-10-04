@@ -43,5 +43,6 @@
 		border-bottom-right-radius: var(--container-radius);
 		border-bottom-left-radius: var(--container-radius);
 		padding: var(--block-padding);
+		background: var(--block-background-fill);
 	}
 </style>
