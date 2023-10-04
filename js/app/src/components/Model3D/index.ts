@@ -10,3 +10,5 @@ export const document = (config: Record<string, any>) => ({
 		payload: "object with file name and base64 data"
 	}
 });
+
+// override

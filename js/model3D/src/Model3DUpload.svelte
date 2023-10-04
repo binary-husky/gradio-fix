@@ -103,8 +103,6 @@
 	$: dispatch("drag", dragging);
 </script>
 
-<BlockLabel {show_label} Icon={File} label={label || "3D Model"} />
-
 {#if value === null}
 	<Upload on:load={handle_upload} filetype=".obj, .gltf, .glb" bind:dragging>
 		<slot />
@@ -115,6 +113,8 @@
 		<canvas bind:this={canvas} />
 	</div>
 {/if}
+
+<!-- // override // override -->
 
 <style>
 	.input-model {

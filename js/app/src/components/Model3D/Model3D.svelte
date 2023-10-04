@@ -1,14 +1,10 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
-	import { Model3D, Model3DUpload } from "@gradio/model3D";
-	import { BlockLabel, Block, Empty } from "@gradio/atoms";
-	import UploadText from "../UploadText.svelte";
-	import { File } from "@gradio/icons";
-
-	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
+	import { Block } from "@gradio/atoms";
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import { _ } from "svelte-i18n";
+	import { onMount } from "svelte";
 
 	export let elem_id: string = "";
 	export let elem_classes: Array<string> = [];
@@ -27,9 +23,52 @@
 	$: _value = normalise_file(value, root, root_url);
 
 	let dragging = false;
+
+	//////////////////////////
+	let canvas_handle;
+	import * as THREE from "three";
+
+	onMount(() => {
+		const scene = new THREE.Scene();
+		const camera = new THREE.PerspectiveCamera(
+			75,
+			window.innerWidth / window.innerHeight,
+			0.1,
+			1000
+		);
+		const geometry = new THREE.BoxGeometry();
+		const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+		const cube = new THREE.Mesh(geometry, material);
+		let renderer;
+		scene.add(cube);
+		camera.position.z = 5;
+
+		const animate = () => {
+			requestAnimationFrame(animate);
+			cube.rotation.x += 0.01;
+			cube.rotation.y += 0.01;
+			renderer.render(scene, camera);
+		};
+
+		const resize = () => {
+			let ratio = 0.9;
+			renderer.setSize(window.innerWidth * ratio, window.innerHeight * ratio);
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+		};
+
+		window.addEventListener("resize", resize);
+		renderer = new THREE.WebGLRenderer({
+			antialias: true,
+			canvas: canvas_handle
+		});
+		resize();
+		animate();
+	});
+	///////////////////////////
 </script>
 
-<Block
+<!-- <Block
 	{visible}
 	variant={value === null ? "dashed" : "solid"}
 	border_mode={dragging ? "focus" : "base"}
@@ -37,29 +76,18 @@
 	{elem_id}
 	{elem_classes}
 >
-	<StatusTracker {...loading_status} />
+</Block> -->
+<div id="container">
+	<canvas bind:this={canvas_handle} />
+</div>
 
-	{#if mode === "dynamic"}
-		<Model3DUpload
-			{label}
-			{show_label}
-			{clearColor}
-			value={_value}
-			on:change={({ detail }) => (value = detail)}
-			on:drag={({ detail }) => (dragging = detail)}
-			on:change
-			on:clear
-		>
-			<UploadText type="file" />
-		</Model3DUpload>
-	{:else if value}
-		<Model3D value={_value} {clearColor} {label} {show_label} />
-	{:else}
-		<!-- Not ideal but some bugs to work out before we can 
-				 make this consistent with other components -->
+<!-- // override // override -->
+<!-- qwdqwdwqd
+	<canvas bind:this={canvas_handle} /> -->
 
-		<BlockLabel {show_label} Icon={File} label={label || "3D Model"} />
-
-		<Empty size="large" unpadded_box={true}><File /></Empty>
-	{/if}
-</Block>
+<style>
+	#container {
+		width: 50%;
+		height: 50%;
+	}
+</style>
