@@ -4,7 +4,7 @@
 	export let init_x: string;
 	export let init_y: string;
 	export let width: string;
-	export let len_y: string;
+	export let drag: string;
 	export let equal_height = true;
 	export let elem_id: string;
 	export let elem_classes: string[] = [];
@@ -15,7 +15,7 @@
 		init_x,
 		init_y,
 		width,
-		len_y
+		drag
 	};
 
 	$: cssVarStyles = Object.entries(styles)
@@ -34,20 +34,26 @@
 	});
 
 	function handleMouseDown(event: MouseEvent) {
-		isDragging = true;
-		offsetX = event.clientX - container.offsetLeft;
-		offsetY = event.clientY - container.offsetTop;
+		if (drag != "forbidden") {
+			isDragging = true;
+			offsetX = event.clientX - container.offsetLeft;
+			offsetY = event.clientY - container.offsetTop;
+		}
 	}
 
 	function handleMouseMove(event: MouseEvent) {
-		if (isDragging) {
-			container.style.left = event.clientX - offsetX + "px";
-			container.style.top = event.clientY - offsetY + "px";
+		if (drag != "forbidden") {
+			if (isDragging) {
+				container.style.left = event.clientX - offsetX + "px";
+				container.style.top = event.clientY - offsetY + "px";
+			}
 		}
 	}
 
 	function handleMouseUp() {
-		isDragging = false;
+		if (drag != "forbidden") {
+			isDragging = false;
+		}
 	}
 </script>
 
@@ -57,17 +63,31 @@
 	class:unequal-height={equal_height === false}
 	class:stretch={equal_height}
 	class:hide={!visible}
-	class:floating-component={false === false}
+	class:floating-component={true}
 	id={elem_id}
 	bind:this={container}
 	style={cssVarStyles}
 	class={elem_classes.join(" ")}
-	on:mousedown={handleMouseDown}
+	on:mousedown={drag === "everywhere" ? handleMouseDown : null}
 >
+	<div
+		class:drag-area={true}
+		class:hide={!(visible && drag === "top")}
+		style="height: {visible && drag === 'top' ? '20px' : '0px'};"
+		on:mousedown={handleMouseDown}
+	>
+		拖动此处 (drag here to move)
+	</div>
 	<slot />
 </div>
 
 <style>
+	.drag-area {
+		background: var(--background-fill-secondary);
+		justify-content: center;
+		align-items: center;
+	}
+
 	.hide {
 		display: none;
 	}

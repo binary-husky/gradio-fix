@@ -31,7 +31,7 @@ class Floating(BlockContext):
         init_x: str | None = "0%",
         init_y: str | None = "0%",
         width: str | None = "10%",
-        len_y: str | None = "10%",
+        drag: str | None = "everywhere",
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
         equal_height: bool = True,
@@ -39,6 +39,7 @@ class Floating(BlockContext):
     ):
         """
         Parameters:
+            drag: how the floating element can be dragged. Can be 'everywhere', 'forbidden', or 'top'.
             variant: floating type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'compact' (rounded corners and no internal gap).
             visible: If False, floating will be hidden.
             elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
@@ -49,7 +50,7 @@ class Floating(BlockContext):
         self.init_x = init_x
         self.init_y = init_y
         self.width = width
-        self.len_y = len_y
+        self.drag = drag
         self.equal_height = equal_height
         if variant == "compact":
             self.allow_expected_parents = False
@@ -64,7 +65,7 @@ class Floating(BlockContext):
             "init_x": self.init_x,
             "init_y": self.init_y,
             "width": self.width,
-            "len_y": self.len_y,
+            "drag": self.drag,
             **super().get_config(),
         }
 
@@ -74,14 +75,14 @@ class Floating(BlockContext):
         init_x: str | None = "0%",
         init_y: str | None = "0%",
         width: str | None = "10%",
-        len_y: str | None = "10%",
+        drag: str | None = "everywhere",
     ):
         return {
             "visible": visible,
             "init_x": init_x,
             "init_y": init_y,
             "width": width,
-            "len_y": len_y,
+            "drag": drag,
             "visible": visible,
             "__type__": "update",
         }
