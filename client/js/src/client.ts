@@ -376,8 +376,7 @@ export async function client(
 					});
 
 					post_data(
-						`${http_protocol}//${host + config.path}/run${
-							_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
+						`${http_protocol}//${host + config.path}/run${_endpoint.startsWith("/") ? _endpoint : `/${_endpoint}`
 						}`,
 						{
 							...payload,
@@ -388,11 +387,11 @@ export async function client(
 						.then(([output, status_code]) => {
 							const data = transform_files
 								? transform_output(
-										output.data,
-										api_info,
-										config.root,
-										config.root_url
-								  )
+									output.data,
+									api_info,
+									config.root,
+									config.root_url
+								)
 								: output.data;
 							if (status_code == 200) {
 								fire_event({
@@ -511,11 +510,11 @@ export async function client(
 								time: new Date(),
 								data: transform_files
 									? transform_output(
-											data.data,
-											api_info,
-											config.root,
-											config.root_url
-									  )
+										data.data,
+										api_info,
+										config.root,
+										config.root_url
+									)
 									: data.data,
 								endpoint: _endpoint,
 								fn_index
@@ -642,7 +641,7 @@ export async function client(
 			try {
 				let response: Response;
 				// @ts-ignore
-				if (semiver(config.version || "2.0.0", "3.30") < 0) {
+				if (1 < 0) {
 					response = await fetch(
 						"https://gradio-space-api-fetcher-v2.hf.space/api",
 						{
