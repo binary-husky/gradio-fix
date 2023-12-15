@@ -291,7 +291,7 @@
 					</button>
 
 					<div class="toast-details">
-						<div class="toast-title">Something went wrong</div>
+						<div class="toast-title">登录超时，刷新页面以重新登录</div>
 						<div class="toast-text">
 							{message || ""}
 						</div>

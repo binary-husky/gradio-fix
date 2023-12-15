@@ -269,14 +269,14 @@
 						<span class="pinger" />
 						<span class="dot" />
 					</span>
-					Stop recording
+					停用麦克风
 				</Button>
 			{:else}
 				<Button size="sm" on:click={record}>
 					<span class="record-icon">
 						<span class="dot" />
 					</span>
-					Record from microphone
+					启动麦克风
 				</Button>
 			{/if}
 		</div>

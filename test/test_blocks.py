@@ -433,7 +433,7 @@ class TestBlocksMethods:
 
     @patch(
         "gradio.themes.ThemeClass.from_hub",
-        side_effect=ValueError("Something went wrong!"),
+        side_effect=ValueError("登录超时，刷新页面以重新登录!"),
     )
     def test_use_default_theme_as_fallback(self, mock_from_hub):
         with pytest.warns(

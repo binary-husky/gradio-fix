@@ -2,8 +2,8 @@
 rm -r dist
 bash scripts/build_frontend.sh && bash scripts/install_gradio.sh && pip install .
 python -m build
-# mv ./dist/gradio-3.32.6-py3-none-any.whl /home/fuqingxu/chatgpt_academic/docs/gradio-3.32.6-py3-none-any.whl
-
+# mv ./dist/gradio-3.32.7-py3-none-any.whl /home/fuqingxu/chatgpt_academic/docs/gradio-3.32.7-py3-none-any.whl
+mv ./dist/gradio-3.32.7-py3-none-any.whl /home/fuqingxu/faka-docker-compose/faka-docker-compose/gpt_academic/docs/gradio-3.32.7-py3-none-any.whl
 
 
 
