@@ -228,11 +228,36 @@
 						output.props[update_key] = update_value;
 					}
 				}
+				rootNode = rootNode;
 			} else {
 				output.props.value = value;
 			}
 		});
-		rootNode = rootNode;
+	}
+
+	function handle_update_special(data: any, fn_index: number) {
+		const outputs = dependencies[fn_index].outputs;
+		data?.forEach((value: any, i: number) => {
+			const output = instance_map[outputs[i]];
+			output.props.value_is_output = true;
+			if (
+				typeof value === "object" &&
+				value !== null &&
+				value.__type__ === "update"
+			) {
+				for (const [update_key, update_value] of Object.entries(value)) {
+					if (update_key === "__type__") {
+						continue;
+					} else {
+						output.props[update_key] = update_value;
+					}
+				}
+				rootNode = rootNode;
+			} else {
+				output.props.value = value;
+				rootNode = rootNode;
+			}
+		});
 	}
 
 	let submit_map: Map<number, ReturnType<typeof app.submit>> = new Map();
@@ -285,7 +310,7 @@
 						payload.data = v;
 						make_prediction();
 					} else {
-						handle_update(v, dep_index);
+						handle_update_special(v, dep_index);
 					}
 				});
 		} else {
