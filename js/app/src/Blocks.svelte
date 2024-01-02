@@ -137,10 +137,13 @@
 		);
 	}
 
-	let instance_map = components.reduce((acc, next) => {
-		acc[next.id] = next;
-		return acc;
-	}, {} as { [id: number]: ComponentMeta });
+	let instance_map = components.reduce(
+		(acc, next) => {
+			acc[next.id] = next;
+			return acc;
+		},
+		{} as { [id: number]: ComponentMeta }
+	);
 
 	type LoadedComponent = {
 		Component: ComponentMeta["component"];
@@ -239,23 +242,25 @@
 		const outputs = dependencies[fn_index].outputs;
 		data?.forEach((value: any, i: number) => {
 			const output = instance_map[outputs[i]];
-			output.props.value_is_output = true;
-			if (
-				typeof value === "object" &&
-				value !== null &&
-				value.__type__ === "update"
-			) {
-				for (const [update_key, update_value] of Object.entries(value)) {
-					if (update_key === "__type__") {
-						continue;
-					} else {
-						output.props[update_key] = update_value;
+			if (output) {
+				output.props.value_is_output = true;
+				if (
+					typeof value === "object" &&
+					value !== null &&
+					value.__type__ === "update"
+				) {
+					for (const [update_key, update_value] of Object.entries(value)) {
+						if (update_key === "__type__") {
+							continue;
+						} else {
+							output.props[update_key] = update_value;
+						}
 					}
+					rootNode = rootNode;
+				} else {
+					output.props.value = value;
+					rootNode = rootNode;
 				}
-				rootNode = rootNode;
-			} else {
-				output.props.value = value;
-				rootNode = rootNode;
 			}
 		});
 	}
