@@ -46,6 +46,9 @@
 			if (isDragging) {
 				container.style.left = event.clientX - offsetX + "px";
 				container.style.top = event.clientY - offsetY + "px";
+				if (event.clientY - offsetY < 0) {
+					container.style.top = "0px";
+				}
 			}
 		}
 	}
