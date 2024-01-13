@@ -79,7 +79,6 @@
 		if (i != value.length - 1) {
 			return false;
 		}
-		console.log("ooopps");
 		var parser = new DOMParser(); // 创建一个新的DOM解析器
 		var doc = parser.parseFromString(htmlString, "text/html"); // 解析字符串为文档
 		var markdownBody = doc.querySelector(".markdown-body"); // 选择markdown-body类的元素
