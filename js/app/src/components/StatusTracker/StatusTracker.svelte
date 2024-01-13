@@ -224,6 +224,10 @@
 			{#if timer}
 				{formatted_timer}{eta ? `/${formatted_eta}` : ""}s
 			{/if}
+
+			{#if timer_diff > 10}
+				服务器无响应，请刷新页面
+			{/if}
 		</div>
 
 		{#if last_progress_level != null}
@@ -291,7 +295,9 @@
 					</button>
 
 					<div class="toast-details">
-						<div class="toast-title">连接超时，请您依次尝试：1、刷新网页重新登录；2、启用浏览器隐私模式；3、关代理并重启；4、Github反馈 </div>
+						<div class="toast-title">
+							连接超时，请您依次尝试：1、刷新网页重新登录；2、启用浏览器隐私模式；3、关代理并重启；4、Github反馈
+						</div>
 						<div class="toast-text">
 							{message || ""}
 						</div>
