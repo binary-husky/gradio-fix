@@ -88,54 +88,56 @@
 		{#if value !== null}
 			{#each value as message_pair, i}
 				{#each message_pair as message, j}
-					<!-- svelte-ignore a11y-click-events-have-key-events -->
-					<div
-						data-testid={j == 0 ? "user" : "bot"}
-						class:latest={i === value.length - 1}
-						class="message {j == 0 ? 'user' : 'bot'}"
-						class:hide={message === null}
-						class:selectable
-						on:click={() =>
-							dispatch("select", {
-								index: [i, j],
-								value: message
-							})}
-					>
-						{#if typeof message === "string"}
-							{@html message}
-							{#if feedback && j == 1}
-								<div class="feedback">
-									{#each feedback as f}
-										<button>{f}</button>
-									{/each}
-								</div>
+					{#if message !== null && message !== ""}
+						<!-- svelte-ignore a11y-click-events-have-key-events -->
+						<div
+							data-testid={j == 0 ? "user" : "bot"}
+							class:latest={i === value.length - 1}
+							class="message {j == 0 ? 'user' : 'bot'}"
+							class:hide={message === null}
+							class:selectable
+							on:click={() =>
+								dispatch("select", {
+									index: [i, j],
+									value: message
+								})}
+						>
+							{#if typeof message === "string"}
+								{@html message}
+								{#if feedback && j == 1}
+									<div class="feedback">
+										{#each feedback as f}
+											<button>{f}</button>
+										{/each}
+									</div>
+								{/if}
+							{:else if message !== null && message.mime_type?.includes("audio")}
+								<audio
+									controls
+									preload="metadata"
+									src={message.data}
+									title={message.alt_text}
+									on:play
+									on:pause
+									on:ended
+								/>
+							{:else if message !== null && message.mime_type?.includes("video")}
+								<video
+									controls
+									src={message.data}
+									title={message.alt_text}
+									preload="auto"
+									on:play
+									on:pause
+									on:ended
+								>
+									<track kind="captions" />
+								</video>
+							{:else if message !== null && message.mime_type?.includes("image")}
+								<img src={message.data} alt={message.alt_text} />
 							{/if}
-						{:else if message !== null && message.mime_type?.includes("audio")}
-							<audio
-								controls
-								preload="metadata"
-								src={message.data}
-								title={message.alt_text}
-								on:play
-								on:pause
-								on:ended
-							/>
-						{:else if message !== null && message.mime_type?.includes("video")}
-							<video
-								controls
-								src={message.data}
-								title={message.alt_text}
-								preload="auto"
-								on:play
-								on:pause
-								on:ended
-							>
-								<track kind="captions" />
-							</video>
-						{:else if message !== null && message.mime_type?.includes("image")}
-							<img src={message.data} alt={message.alt_text} />
-						{/if}
-					</div>
+						</div>
+					{/if}
 				{/each}
 			{/each}
 		{/if}
