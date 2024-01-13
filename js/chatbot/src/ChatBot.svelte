@@ -70,6 +70,43 @@
 		});
 	});
 
+	function is_markdown_body(
+		htmlString: string,
+		i: Number,
+		value: Array<[string | FileData | null, string | FileData | null]>
+	) {
+		// <!-- 只在最新的消息中应用精细HTML划分 -->
+		if (i != value.length - 1) {
+			return false;
+		}
+		console.log("ooopps");
+		var parser = new DOMParser(); // 创建一个新的DOM解析器
+		var doc = parser.parseFromString(htmlString, "text/html"); // 解析字符串为文档
+		var markdownBody = doc.querySelector(".markdown-body"); // 选择markdown-body类的元素
+		if (!markdownBody) {
+			return false;
+		}
+		return true;
+	}
+
+	function htmlStringToParagraphs(htmlString: string) {
+		var parser = new DOMParser(); // 创建一个新的DOM解析器
+		var doc = parser.parseFromString(htmlString, "text/html"); // 解析字符串为文档
+		var markdownBody = doc.querySelector(".markdown-body"); // 选择markdown-body类的元素
+		var paragraphStrings = markdownBody
+			? Array.from(markdownBody.childNodes).map(function (element) {
+					if (element.nodeType === Node.ELEMENT_NODE) {
+						return (element as HTMLElement).outerHTML; // HTMLElement always has outerHTML
+					}
+					if (element.nodeType === Node.TEXT_NODE) {
+						return element.textContent; // TEXT_NODE always has textContent
+					}
+					return ""; // Fallback for other node types
+				})
+			: [];
+		return paragraphStrings;
+	}
+
 	$: {
 		if (value !== old_value) {
 			old_value = value;
@@ -103,7 +140,18 @@
 								})}
 						>
 							{#if typeof message === "string"}
-								{@html message}
+								{#if i == value.length - 1 && j == 1 && is_markdown_body(message, i, value)}
+									<!-- 只在最新的消息中应用精细HTML划分 -->
+									<div class="markdown-body">
+										<!-- {@html message} -->
+										{#each htmlStringToParagraphs(message) as cc, j}
+											{@html cc}
+										{/each}
+									</div>
+								{:else}
+									{@html message}
+								{/if}
+
 								{#if feedback && j == 1}
 									<div class="feedback">
 										{#each feedback as f}
