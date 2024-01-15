@@ -23,6 +23,111 @@
 		select: SelectData;
 	}>();
 
+	function countMatchingChars(str1: string, str2: string) {
+		if (str1.length > str2.length) {
+			// 如果新字符串长度反而多，直接排除
+			return 0;
+		}
+		if (str1.split("\n").length <= 1) {
+			// 如果旧字符串长度只有一行，直接排除
+			return 0;
+		}
+		let count = 0;
+		let minLength = Math.min(str1.length, str2.length);
+		for (let i = 0; i < minLength; i++) {
+			if (str1[i] !== str2[i]) {
+				count = 0;
+				return 0;
+			}
+			count++;
+		}
+		return count;
+	}
+
+	function preserveMermaidGraphIfPossible(
+		value: string,
+		mermaid_block_arr_old
+	) {
+		var parser = new DOMParser(); // 创建一个新的DOM解析器
+		var newdoc = parser.parseFromString(value, "text/html"); // 解析字符串为文档
+		let mermaid_block_arr_new = newdoc.querySelectorAll(`pre.mermaid`);
+		let need_reload = false;
+
+		for (let i = 0; i < mermaid_block_arr_new.length; i++) {
+			var mermaid_block_new = mermaid_block_arr_new[i];
+			let codeContentNew = mermaid_block_new.querySelector("code")?.textContent;
+			if (codeContentNew) {
+				// 选择一个最多匹配的显示
+				let best_match = -1;
+				let best_match_n_char = -1;
+				for (let j = 0; j < mermaid_block_arr_old.length; j++) {
+					var mermaid_block_old = mermaid_block_arr_old[j];
+					let codeContentOld =
+						mermaid_block_old.querySelector("code_finish_render")?.textContent;
+					if (codeContentOld) {
+						let match_n_char = countMatchingChars(
+							codeContentOld,
+							codeContentNew
+						);
+						if (match_n_char > 10 && match_n_char > best_match_n_char) {
+							best_match = j;
+							best_match_n_char = match_n_char;
+						}
+					}
+				}
+				if (best_match_n_char > 10) {
+					// update code
+					let mermaid_block_old_clone =
+						mermaid_block_arr_old[best_match].cloneNode(true);
+					mermaid_block_old_clone.querySelector("code").textContent =
+						codeContentNew;
+					// replace
+					mermaid_block_arr_new[i].replaceWith(mermaid_block_old_clone);
+					// console.log(codeContentNew);
+					need_reload = true;
+				} else {
+					// console.log("no match");
+				}
+			}
+		}
+		if (need_reload) {
+			var serializer = new XMLSerializer();
+			var docString = serializer.serializeToString(newdoc);
+			return docString;
+		} else {
+			return value;
+		}
+	}
+
+	function PreserveOldRender(
+		value: Array<[string | FileData | null, string | FileData | null]> | null
+	) {
+		if (value) {
+			let mermaid_block_arr_old = document.querySelectorAll(`pre.mermaid`);
+			let mermaidBlocksWithFinishRender = mermaid_block_arr_old;
+			// let mermaidBlocksWithFinishRender = Array.from(
+			// 	mermaid_block_arr_old
+			// ).filter((block) => {
+			// 	return block.querySelector("code_pending_render") !== null;
+			// });
+			if (mermaidBlocksWithFinishRender.length != 0) {
+				for (let i = 0; i < value.length; i++) {
+					if (value[i]) {
+						for (let j = 0; j < 2; j++) {
+							if (value[i].length >= 1 && typeof value[i][j] === "string") {
+								value[i][j] = preserveMermaidGraphIfPossible(
+									value[i][j],
+									mermaidBlocksWithFinishRender
+								);
+							}
+						}
+					}
+				}
+			}
+		}
+		return value;
+	}
+
 	beforeUpdate(() => {
 		autoscroll =
 			div && div.offsetHeight + div.scrollTop > div.scrollHeight - 100;
@@ -108,6 +213,13 @@
 
 	$: {
 		if (value !== old_value) {
+			// try {
+			// 	console.log("before", value[value.length - 1][1]);
+			// } catch {}
+			value = PreserveOldRender(value);
+			// try {
+			// 	console.log("after", value[value.length - 1][1]);
+			// } catch {}
 			old_value = value;
 			dispatch("change");
 		}
