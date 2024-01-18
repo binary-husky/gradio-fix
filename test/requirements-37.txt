@@ -155,7 +155,7 @@ ptyprocess==0.7.0
     # via pexpect
 py==1.11.0
     # via pytest
-pydantic==1.9.1
+pydantic
     # via
     #   -r requirements.in
     #   fastapi
