@@ -49,7 +49,7 @@
 		mermaid_block_arr_old
 	) {
 		var parser = new DOMParser(); // 创建一个新的DOM解析器
-		var newdoc = parser.parseFromString(value, "text/html"); // 解析字符串为文档
+		var newdoc = parser.parseFromString(value, "text/xml"); // 解析字符串为文档
 		let mermaid_block_arr_new = newdoc.querySelectorAll(`pre.mermaid`);
 		let need_reload = false;
 
@@ -64,6 +64,14 @@
 					var mermaid_block_old = mermaid_block_arr_old[j];
 					let codeContentOld =
 						mermaid_block_old.querySelector("code_finish_render")?.textContent;
+					let copy_btn = mermaid_block_old.querySelector(
+						'button[title="copy"]'
+					);
+					// remove copy_btn 删除复制按钮，防止因为复制按钮的存在让`afterUpdate`跳过复制按钮的更新
+					if (copy_btn) {
+						const copy_div = copy_btn.parentElement as HTMLElement;
+						copy_div.remove();
+					}
 					if (codeContentOld) {
 						let match_n_char = countMatchingChars(
 							codeContentOld,
@@ -146,7 +154,9 @@
 			let code_node = n as HTMLElement;
 			let copy_div_exist = false;
 			if (code_node.parentElement) {
-				let buttonElement = code_node.parentElement.querySelector("button");
+				let buttonElement = code_node.parentElement.querySelector(
+					'button[title="copy"]'
+				);
 				if (buttonElement) {
 					copy_div_exist = true;
 				}
@@ -163,6 +173,7 @@
 					}
 				});
 				let node = n.parentElement as HTMLElement;
+				copy_div.title = "gradio_copy_btn_div";
 				copy_div.style.position = "absolute";
 				copy_div.style.right = "0";
 				copy_div.style.top = "0";
