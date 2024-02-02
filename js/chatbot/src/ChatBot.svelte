@@ -3,6 +3,9 @@
 	import type { Styles, SelectData } from "@gradio/utils";
 	import type { FileData } from "@gradio/upload";
 	import Copy from "./Copy.svelte";
+	import "./svg.pan-zoom.min.js";
+	import "./mermaid.min.js";
+	import { serializeState, createOrUpdateHyperlink } from "./mermaid_editor.js";
 
 	export let value: Array<
 		[string | FileData | null, string | FileData | null]
@@ -14,6 +17,7 @@
 	export let feedback: Array<string> | null = null;
 	export let style: Styles = {};
 	export let selectable: boolean = false;
+	// 给出配置 Provide a default config in case one is not specified
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
@@ -22,6 +26,15 @@
 		change: undefined;
 		select: SelectData;
 	}>();
+
+	function removeLastLine(str) {
+		// 将字符串按换行符分割成数组
+		var lines = str.split("\n");
+		lines.pop();
+		// 将数组重新连接成字符串，并按换行符连接
+		var result = lines.join("\n");
+		return result;
+	}
 
 	function countMatchingChars(str1: string, str2: string) {
 		if (str1.length > str2.length) {
@@ -150,6 +163,8 @@
 				});
 			});
 		}
+
+		//////////////////////////////////////copy btn processing//////////////////////////////////////
 		div.querySelectorAll("pre > code").forEach((n) => {
 			let code_node = n as HTMLElement;
 			let copy_div_exist = false;
@@ -184,7 +199,163 @@
 				node.appendChild(copy_div);
 			}
 		});
+
+		//////////////////////////////////////mermaid processing//////////////////////////////////////
+		if (div.querySelector("pre.mermaid > code")) {
+			const blocks = document.querySelectorAll(`pre.mermaid`);
+
+			for (let i = 0; i < blocks.length; i++) {
+				var block = blocks[i];
+				////////////////////////////// 如果代码没有发生变化，就不渲染了 ///////////////////////////////////
+				var code = block.querySelector("code").textContent;
+				let code_elem = block.querySelector("code");
+				let codeContent = code_elem.textContent; // 获取code元素中的文本内容
+				addZoomPan(block);
+
+				// 判断codeContent是否包含'<gpt_academic_hide_mermaid_code>'，如果是，则使code_elem隐藏
+				if (codeContent.indexOf("<gpt_academic_hide_mermaid_code>") !== -1) {
+					code_elem.style.display = "none";
+				}
+
+				// 如果block下已存在code_already_rendered元素，则获取它
+				let codePendingRenderElement = block.querySelector(
+					"code_pending_render"
+				);
+				if (codePendingRenderElement) {
+					// 如果block下已存在code_pending_render元素
+					codePendingRenderElement.style.display = "none";
+					if (codePendingRenderElement.textContent !== codeContent) {
+						codePendingRenderElement.textContent = codeContent; // 如果现有的code_pending_render元素中的内容与code元素中的内容不同，更新code_pending_render元素中的内容
+					} else {
+						continue; // 如果相同，就不处理了
+					}
+				} else {
+					// 如果不存在code_pending_render元素，则将code元素中的内容添加到新创建的code_pending_render元素中
+					let codePendingRenderElementNew = document.createElement(
+						"code_pending_render"
+					); // 创建一个新的code_already_rendered元素
+					codePendingRenderElementNew.style.display = "none";
+					codePendingRenderElementNew.textContent = codeContent;
+					block.appendChild(codePendingRenderElementNew); // 将新创建的code_pending_render元素添加到block中
+					codePendingRenderElement = codePendingRenderElementNew;
+				}
+
+				////////////////////////////// 在这里才真正开始渲染 ///////////////////////////////////
+				try {
+					do_render(block, code, codeContent, i);
+					// console.log("渲染", codeContent);
+				} catch (err) {
+					try {
+						var lines = code.split("\n");
+						if (lines.length < 3) {
+							continue;
+						}
+						do_render(block, removeLastLine(code), codeContent, i);
+						// console.log("渲染", codeContent);
+					} catch (err) {
+						console.log("以下代码不能渲染", code, removeLastLine(code), err);
+					}
+				}
+			}
+
+			function do_render(block, code, codeContent, cnt) {
+				mermaid.mermaidAPI.globalReset(); // 全局复位
+				const defaultConfig = {
+					startOnLoad: false,
+					theme: "default",
+					flowchart: {
+						htmlLabels: false
+					},
+					er: {
+						useMaxWidth: false
+					},
+					sequence: {
+						useMaxWidth: false,
+						noteFontWeight: "14px",
+						actorFontSize: "14px",
+						messageFontSize: "16px"
+					}
+				};
+
+				if (document.body.classList.contains("dark")) {
+					defaultConfig.theme = "dark";
+				}
+
+				mermaid.initialize(defaultConfig);
+
+				var rendered_content = mermaid.render(`_diagram_${cnt}`, code);
+				////////////////////////////// 记录有哪些代码已经被渲染了 ///////////////////////////////////
+				let codeFinishRenderElement = block.querySelector("code_finish_render"); // 如果block下已存在code_already_rendered元素，则获取它
+				if (codeFinishRenderElement) {
+					// 如果block下已存在code_already_rendered元素
+					codeFinishRenderElement.style.display = "none";
+				} else {
+					// 如果不存在code_finish_render元素，则将code元素中的内容添加到新创建的code_finish_render元素中
+					let codeFinishRenderElementNew =
+						document.createElement("code_finish_render"); // 创建一个新的code_already_rendered元素
+					codeFinishRenderElementNew.style.display = "none";
+					codeFinishRenderElementNew.textContent = "";
+					block.appendChild(codeFinishRenderElementNew); // 将新创建的code_already_rendered元素添加到block中
+					codeFinishRenderElement = codeFinishRenderElementNew;
+				}
+
+				////////////////////////////// 创建一个用于渲染的容器 ///////////////////////////////////
+				let mermaidRender = block.querySelector(".mermaid_render"); // 尝试获取已存在的<div class='mermaid_render'>
+				if (!mermaidRender) {
+					mermaidRender = document.createElement("div"); // 不存在，创建新的<div class='mermaid_render'>
+					mermaidRender.classList.add("mermaid_render");
+					mermaidRender.style.position = "relative";
+					mermaidRender.style.display = "flex";
+					mermaidRender.style.justifyContent = "center";
+					mermaidRender.style.alignItems = "center";
+					block.appendChild(mermaidRender); // 将新创建的元素附加到block
+				}
+				mermaidRender.innerHTML = rendered_content;
+				codeFinishRenderElement.textContent = code; // 标记已经渲染的部分
+				addZoomPan(block);
+
+				////////////////////////////// 创建一个“点击这里编辑脑图” ///////////////////////////////
+				let pako_encode = serializeState({
+					code: codeContent,
+					mermaid: '{\n  "theme": "default"\n}',
+					autoSync: true,
+					updateDiagram: false
+				});
+				createOrUpdateHyperlink(
+					block,
+					"点击这里编辑脑图",
+					"https://mermaid.live/edit#" + pako_encode
+				);
+			}
+		}
 	});
+
+	function addZoomPan(block) {
+		const svgElement = block.querySelector(".mermaid_render > svg");
+		if (svgElement) {
+			let pan_control = svgElement.querySelector("g.svg-pan-zoom-control");
+			if (pan_control) {
+				pan_control.remove();
+			}
+			svgElement.style.maxWidth = "100%";
+			svgElement.style.border = "dashed";
+			svgElement.style.borderWidth = "thin";
+			let h = svgElement.getBoundingClientRect().height;
+			let w = svgElement.getBoundingClientRect().width;
+			let panZoom = svgPanZoom(svgElement, {
+				zoomEnabled: true
+				// fit: true,
+				// center: true
+			});
+			if (h > window.innerHeight * 0.4) {
+				let h_new = window.innerHeight * 0.4;
+				w = (w * h_new) / h;
+				h = h_new;
+			}
+			svgElement.style.height = h + "px";
+			svgElement.style.width = w + "px";
+		}
+	}
 
 	function is_markdown_body(
 		htmlString: string,
