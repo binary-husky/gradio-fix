@@ -8,6 +8,11 @@
 	"license": "ISC",
 	"private": true,
 	"dependencies": {
-		"@gradio/utils": "workspace:^0.0.1"
+		"@gradio/utils": "workspace:^0.0.1",
+		"tailwindcss": "^3.1.6"
+	},
+	"devDependencies": {
+		"flowbite": "^2.3.0",
+		"flowbite-svelte": "^0.44.24"
 	}
 }

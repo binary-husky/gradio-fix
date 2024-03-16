@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { get_styles } from "../../utils";
 	import type { Styles } from "@gradio/utils";
+	import { GradientButton } from "flowbite-svelte";
 
 	export let value: string = "";
 	export let style: Styles = {};
@@ -37,6 +38,7 @@
 >
 	<slot />
 </button>
+<GradientButton shadow color="blue">Blue</GradientButton>
 
 <style>
 	button:after {
