@@ -237,10 +237,6 @@
 			}
 		});
 	}
-	// window.update_gradio_instance = (['bbbbbbbbbb'], 0)
-	window.update_gradio_instance = (data: any, fn_index: number) => {
-		handle_update_special(data, fn_index);
-	};
 
 	function gpt_academic_update_gradio_component(event) {
 		const value = event.detail.data;
@@ -265,6 +261,27 @@
 		} else {
 			console.log("No matching target output found.");
 		}
+	}
+	function gpt_academic_get_gradio_component_value(event) {
+		const target_elem_id = event.detail.elem_id;
+		// Convert instance_map's values to an array and then use find()
+		const foundElement = Object.values(instance_map).find(
+			(element) =>
+				element.props && // Ensure props exists
+				element.props.elem_id === target_elem_id // Check if elem_id matches the target
+		);
+		// If found, assign it to target_output; otherwise, assign null
+		const target_output = foundElement || null;
+		if (target_output) {
+			// begin the real business
+			const output = target_output;
+			window.gpt_academic_temp_gradio_component_value = output.props.value;
+			window.gpt_academic_temp_gradio_component = output;
+			event.detail.resolve(output);
+		} else {
+			console.log("No matching target output found.");
+		}
+		// 事件的具体处理逻辑完成后，调用resolve
 	}
 
 	function handle_update_special(data: any, fn_index: number) {
@@ -469,6 +486,7 @@
 
 <svelte:window
 	on:gpt_academic_update_gradio_component={gpt_academic_update_gradio_component}
+	on:gpt_academic_get_gradio_component_value={gpt_academic_get_gradio_component_value}
 />
 <svelte:head>
 	{#if control_page_title}

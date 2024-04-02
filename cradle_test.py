@@ -23,11 +23,12 @@ import gradio as gr
 js_fn = """
 function push_data_to_gradio_component(DAT, ELEM_ID){
     const myEvent = new CustomEvent('gpt_academic_update_gradio_component', {
-    detail: {
-        data: DAT,
-        elem_id: ELEM_ID,
-    }
-    });
+            detail: {
+                data: DAT,
+                elem_id: ELEM_ID,
+            }
+        }
+    );
     window.dispatchEvent(myEvent);
 }
 """
