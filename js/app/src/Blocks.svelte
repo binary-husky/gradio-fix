@@ -237,6 +237,35 @@
 			}
 		});
 	}
+	// window.update_gradio_instance = (['bbbbbbbbbb'], 0)
+	window.update_gradio_instance = (data: any, fn_index: number) => {
+		handle_update_special(data, fn_index);
+	};
+
+	function gpt_academic_update_gradio_component(event) {
+		const value = event.detail.data;
+		const target_elem_id = event.detail.elem_id;
+
+		// Convert instance_map's values to an array and then use find()
+		const foundElement = Object.values(instance_map).find(
+			(element) =>
+				element.props && // Ensure props exists
+				element.props.elem_id === target_elem_id // Check if elem_id matches the target
+		);
+		// If found, assign it to target_output; otherwise, assign null
+		const target_output = foundElement || null;
+		if (target_output) {
+			// begin the real business
+			const output = target_output;
+			if (output) {
+				output.props.value_is_output = true;
+				output.props.value = value;
+				rootNode = rootNode;
+			}
+		} else {
+			console.log("No matching target output found.");
+		}
+	}
 
 	function handle_update_special(data: any, fn_index: number) {
 		const outputs = dependencies[fn_index].outputs;
@@ -438,6 +467,9 @@
 	}
 </script>
 
+<svelte:window
+	on:gpt_academic_update_gradio_component={gpt_academic_update_gradio_component}
+/>
 <svelte:head>
 	{#if control_page_title}
 		<title>{title}</title>
