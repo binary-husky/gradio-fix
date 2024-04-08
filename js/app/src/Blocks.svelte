@@ -251,11 +251,26 @@
 		// If found, assign it to target_output; otherwise, assign null
 		const target_output = foundElement || null;
 		if (target_output) {
-			// begin the real business
 			const output = target_output;
 			if (output) {
+				// ! begin the real business
 				output.props.value_is_output = true;
-				output.props.value = value;
+				if (
+					typeof value === "object" &&
+					value !== null &&
+					value.__type__ === "update"
+				) {
+					for (const [update_key, update_value] of Object.entries(value)) {
+						if (update_key === "__type__") {
+							continue;
+						} else {
+							output.props[update_key] = update_value;
+						}
+					}
+					rootNode = rootNode;
+				} else {
+					output.props.value = value;
+				}
 				rootNode = rootNode;
 			}
 		} else {
