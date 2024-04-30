@@ -83,35 +83,127 @@ export async function post_data(
 	return [output, response.status];
 }
 
-export let NodeBlob;
 
+
+
+interface CustomHTMLElement extends HTMLElement {
+	fadeOutTimeout?: NodeJS.Timeout; // 这个属性可能是数字类型，因为setTimeout返回的是一个数字
+}
+function update_process_bar(percent) {
+	var progressBarContainer = document.getElementById('progressBarContainer') as CustomHTMLElement;
+	var progressBar = document.getElementById('progressBar');
+
+	if (!progressBarContainer) {
+		// Create the progress bar container
+		progressBarContainer = document.createElement('div');
+		progressBarContainer.id = 'progressBarContainer';
+		progressBarContainer.style.position = 'absolute';
+
+		progressBarContainer.style.top = '70%';
+		progressBarContainer.style.left = '40%';
+
+		progressBarContainer.style.width = '20%';
+
+		progressBarContainer.style.backgroundColor = '#e0e0e0';
+		progressBarContainer.style.padding = '3px';
+		progressBarContainer.style.borderRadius = '5px';
+		progressBarContainer.style.boxShadow = 'inset 0 1px 3px rgba(0, 0, 0, 0.2)';
+		progressBarContainer.style.margin = '20px 0';
+		progressBarContainer.style.transition = 'opacity 1s ease-in-out';
+
+		// Create the progress bar itself
+		progressBar = document.createElement('div');
+		progressBar.id = 'progressBar';
+		progressBar.style.width = '0%';
+		progressBar.style.height = '20px';
+		progressBar.style.backgroundColor = '#76b852';
+		progressBar.style.borderRadius = '3px';
+		progressBar.style.transition = 'width 500ms ease-in-out';
+
+		// Append the elements to the DOM
+		progressBarContainer.appendChild(progressBar);
+		document.body.appendChild(progressBarContainer);
+	}
+
+	// 如果传递来的percent不在0到100的范围内，则校准它
+	if (percent < 0) percent = 0;
+	if (percent > 100) percent = 100;
+
+	// 更新进度条宽度
+	progressBar.style.width = percent + '%';
+
+	// 清除之前可能还在运行的定时器
+	if (progressBarContainer.fadeOutTimeout) {
+		clearTimeout(progressBarContainer.fadeOutTimeout);
+		progressBarContainer.style.opacity = '1'; // 重置不透明度
+	}
+
+	// 设置定时器让进度条n秒后变透明,再消失
+	var n = 2; // 自定义时间n秒后执行变透明和消失
+	progressBarContainer.fadeOutTimeout = setTimeout(function () {
+		// 变透明动画
+		progressBarContainer.style.opacity = '0';
+		// 在动画完成后移除进度条
+		setTimeout(function () {
+			var progressBarContainer = document.getElementById('barContainer');
+			if (progressBarContainer) {
+				document.body.removeChild(progressBarContainer);
+			}
+		}, 1000); // 设置等待动画完成的时间（这里与opacity动画的时间一致）
+	}, n * 1000); // 在n秒后执行上面的函数
+}
+
+
+
+
+
+export let NodeBlob;
+export let last_update_file_name;
 export async function upload_files(
 	root: string,
 	files: Array<File>,
 	token?: `hf_${string}`
 ): Promise<UploadResponse> {
-	const headers: {
-		Authorization?: string;
-	} = {};
-	if (token) {
-		headers.Authorization = `Bearer ${token}`;
+	let be = 0;
+	if (files.length >= 1) {
+		let update_name = files[0]['name'];
+		if (last_update_file_name == update_name) {
+			be = 50;
+		}
+		last_update_file_name = update_name;
 	}
 
-	const formData = new FormData();
-	files.forEach((file) => {
-		formData.append("files", file);
-	});
-	try {
-		var response = await fetch(`${root}/upload`, {
-			method: "POST",
-			body: formData,
-			headers
+	return new Promise((resolve, reject) => {
+		const formData = new FormData();
+		files.forEach((file) => {
+			formData.append("files", file);
 		});
-	} catch (e) {
-		return { error: BROKEN_CONNECTION_MSG };
-	}
-	const output: UploadResponse["files"] = await response.json();
-	return { files: output };
+		const xhr = new XMLHttpRequest();
+		xhr.open("POST", `${root}/upload`, true);
+		// 设置请求头
+		if (token) {
+			xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+		}
+		// 监听上传进度事件
+		xhr.upload.onprogress = function (event) {
+			if (event.lengthComputable) {
+				const percentage = (event.loaded / event.total) * 100 / 2 + be;
+				update_process_bar(percentage);
+			}
+		};
+		xhr.onload = () => {
+			if (xhr.status >= 200 && xhr.status < 300) {
+				const response = JSON.parse(xhr.responseText);
+				resolve({ files: response });
+			} else {
+				reject({ error: BROKEN_CONNECTION_MSG });
+			}
+		};
+		xhr.onerror = () => {
+			reject({ error: BROKEN_CONNECTION_MSG });
+		};
+		xhr.send(formData);
+	});
 }
 
 export async function duplicate(
