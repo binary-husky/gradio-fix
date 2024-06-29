@@ -4,7 +4,7 @@ nvm use 18
 bash scripts/build_frontend.sh && bash scripts/install_gradio.sh && pip install .
 python -m build
 cp ./dist/*.whl ./release
-cp ./dist/gradio-3.32.10-py3-none-any.whl /home/fuqingxu/faka-docker-compose/faka-docker-compose/gpt_academic/docs/gradio-3.32.10-py3-none-any.whl
+cp ./dist/gradio-3.32.11-py3-none-any.whl /home/fuqingxu/faka-docker-compose/faka-docker-compose/gpt_academic/docs/gradio-3.32.11-py3-none-any.whl
 
 
 

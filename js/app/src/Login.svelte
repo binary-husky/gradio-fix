@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Component as Form } from "./components/Form";
 	import { Component as Textbox } from "./components/Textbox";
+	import { Checkbox } from "@gradio/form";
 	import { Button } from "@gradio/button";
 	import { Component as Column } from "./components/Column";
 	export let root: string;
@@ -8,9 +9,11 @@
 	export let app_mode: boolean;
 	export let is_space: boolean;
 
-	let username = "";
-	let password = "";
+	let username = localStorage.getItem("username") || "";
+	let password = localStorage.getItem("password") || "";
 	let incorrect_credentials = false;
+	export let rememberMe: boolean =
+		localStorage.getItem("rememberPassword") || false;
 
 	const submit = async () => {
 		const formData = new FormData();
@@ -23,9 +26,18 @@
 		});
 		if (response.status === 400) {
 			incorrect_credentials = true;
-			username = "";
+			username = username;
 			password = "";
 		} else if (response.status == 200) {
+			if (rememberMe) {
+				localStorage.setItem("username", username);
+				localStorage.setItem("password", password);
+				localStorage.setItem("rememberPassword", rememberMe);
+			} else {
+				localStorage.removeItem("username");
+				localStorage.removeItem("password");
+				localStorage.removeItem("rememberPassword");
+			}
 			location.reload();
 		}
 	};
@@ -44,7 +56,7 @@
 			</p>
 		{/if}
 		{#if incorrect_credentials}
-			<p class="creds">Incorrect Credentials</p>
+			<p class="creds">账号或密码不正确</p>
 		{/if}
 		<Form>
 			<Textbox
@@ -67,7 +79,13 @@
 				bind:value={password}
 			/>
 		</Form>
-
+		<Checkbox
+			label="记住密码"
+			bind:value={rememberMe}
+			on:change
+			on:input
+			on:select
+		/>
 		<Button
 			size="lg"
 			variant="primary"
