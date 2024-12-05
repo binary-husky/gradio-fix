@@ -47,6 +47,7 @@ from gradio.components import (
     StatusTracker,
     Text,
     Textbox,
+    Spark,
     TimeSeries,
     Timeseries,
     UploadButton,

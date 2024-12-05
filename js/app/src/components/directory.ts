@@ -38,5 +38,6 @@ export const component_map = {
 	textbox: () => import("./Textbox"),
 	timeseries: () => import("./TimeSeries"),
 	uploadbutton: () => import("./UploadButton"),
-	video: () => import("./Video")
+	video: () => import("./Video"),
+	spark: () => import("./Spark")
 };
