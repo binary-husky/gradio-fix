@@ -969,10 +969,10 @@ function update_conversation_metadata() {
 // }
 
 // Helper function to generate conversation preview
-function generatePreview(conversation, maxLength = 50) {
+function generatePreview(conversation, maxLength = 100) {
     if (!conversation || conversation.length === 0) return "";
     // Join all messages with dash separator
-    const preview = conversation.join(" - ");
+    const preview = conversation.join("\n");
     if (preview.length <= maxLength) return preview;
     return preview.substring(0, maxLength) + "...";
 }

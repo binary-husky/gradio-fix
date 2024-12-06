@@ -75,7 +75,9 @@
 		// console.log(popupPosition);
 	}
 
-	function handleAction(action: "delete" | "duplicate" | "cancel") {
+	function handleAction(
+		action: "delete" | "duplicate" | "cancel" | "delete_all"
+	) {
 		if (selectedItemIndex === null || action === "cancel") {
 			showPopup = false;
 			return;
@@ -93,6 +95,8 @@
 					detail: itemToDuplicate
 				})
 			);
+		} else if (action === "delete_all") {
+			conversationHistory = [];
 		}
 
 		// Save to localStorage
@@ -121,7 +125,7 @@
 					role="button"
 					tabindex="0"
 				>
-					<span class="tooltip">{item.preview}</span>
+					<p class="tooltip">{item.preview}</p>
 				</div>
 			</div>
 		{/each}
@@ -134,14 +138,14 @@
 				>×</button
 			>
 			<div class="modal-content">
-				<h3>对话内容</h3>
+				<h3>恢复或删除对话内容</h3>
 				<p class="conversation-text">
 					{conversationHistory[selectedItemIndex]?.preview}
 				</p>
 				<div class="button-group">
-					<button on:click={() => handleAction("delete")}>删除对话</button>
-					<button on:click={() => handleAction("duplicate")}>复制对话</button>
-					<button on:click={() => handleAction("cancel")}>取消</button>
+					<button on:click={() => handleAction("duplicate")}>复制</button>
+					<button on:click={() => handleAction("delete")}>删除</button>
+					<button on:click={() => handleAction("delete_all")}>删除全部</button>
 				</div>
 			</div>
 		</div>
@@ -152,6 +156,7 @@
 <style>
 	.spark-container {
 		position: fixed;
+		width: 5%;
 		left: 3px;
 		top: 50%;
 		transform: translateY(-50%);
@@ -206,7 +211,6 @@
 		background-color: #808080;
 		margin: 0px 0;
 	}
-
 	.tooltip {
 		position: absolute;
 		left: 30px;
@@ -217,8 +221,9 @@
 		padding: 5px 10px;
 		border-radius: 4px;
 		font-size: 14px;
-		white-space: nowrap;
+		white-space: pre-wrap;
 		opacity: 0;
+		width: 30vw;
 		visibility: hidden;
 		transition:
 			opacity 0.3s ease,
@@ -286,9 +291,11 @@
 	.conversation-text {
 		margin: 15px 0;
 		padding: 10px;
+		white-space: pre-wrap;
 		background-color: var(--neutral-500);
 		border-radius: 4px;
 		min-height: 60px;
+		max-height: 70vh;
 	}
 
 	.button-group {
@@ -309,5 +316,9 @@
 
 	.button-group button:hover {
 		background-color: var(--secondary-500);
+	}
+
+	.dot-container:first-child .dot {
+		background-color: #00ff00;
 	}
 </style>

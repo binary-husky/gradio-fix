@@ -11,23 +11,14 @@
 	export let value: string;
 	export let show_label: boolean;
 
-	export let style: Styles = {};
-
 	export let mode: "static" | "dynamic";
 </script>
 
-<Block
-	{visible}
-	{elem_id}
-	disable={typeof style.container === "boolean" && !style.container}
->
-	<Spark
-		{style}
-		bind:value
-		{label}
-		{show_label}
-		on:change
-		on:submit
-		disabled={mode === "static"}
-	/>
-</Block>
+<Spark
+	bind:value
+	{label}
+	{show_label}
+	on:change
+	on:submit
+	disabled={mode === "static"}
+/>

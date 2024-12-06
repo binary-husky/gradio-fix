@@ -622,200 +622,92 @@ class Textbox(
 
         return Component.style(self, container=container, **kwargs)
 
-
-
+from gradio.blocks import BlockContext
 @document("style")
 class Spark(
-    FormComponent,
-    Changeable,
-    Inputable,
-    Selectable,
-    Submittable,
-    Blurrable,
-    IOComponent,
-    StringSerializable,
-    TokenInterpretable,
+    BlockContext
 ):
+
+    """
+    Floating is a layout element within Blocks that renders all children in absolute screen space.
+    Example:
+        with gr.Blocks() as demo:
+            with gr.Floating():
+                gr.Image("lion.jpg", scale=2)
+                gr.Image("tiger.jpg", scale=1)
+        demo.launch()
+    Guides: controlling-layout
+    """
 
     def __init__(
         self,
-        value: str | Callable | None = "",
         *,
-        lines: int = 1,
-        max_lines: int = 20,
-        placeholder: str | None = None,
-        label: str | None = None,
-        info: str | None = None,
-        every: float | None = None,
-        show_label: bool = True,
-        interactive: bool | None = None,
+        variant: str = "default",
         visible: bool = True,
+        init_x: str | None = "0%",
+        init_y: str | None = "0%",
+        width: str | None = "10%",
+        drag: str | None = "everywhere",
         elem_id: str | None = None,
         elem_classes: list[str] | str | None = None,
-        type: str = "text",
+        equal_height: bool = True,
         **kwargs,
     ):
-
-        if type not in ["text", "password", "email"]:
-            raise ValueError('`type` must be one of "text", "password", or "email".')
-
-        #
-        self.lines = lines
-        if type == "text":
-            self.max_lines = max(lines, max_lines)
-        else:
-            self.max_lines = 1
-        self.placeholder = placeholder
-        self.select: EventListenerMethod
         """
-        Event listener for when the user selects text in the Textbox.
-        Uses event data gradio.SelectData to carry `value` referring to selected substring, and `index` tuple referring to selected range endpoints.
-        See EventData documentation on how to use this event data.
+        Parameters:
+            drag: how the floating element can be dragged. Can be 'everywhere', 'forbidden', or 'top'.
+            variant: floating type, 'default' (no background), 'panel' (gray background color and rounded corners), or 'compact' (rounded corners and no internal gap).
+            visible: If False, floating will be hidden.
+            elem_id: An optional string that is assigned as the id of this component in the HTML DOM. Can be used for targeting CSS styles.
+            elem_classes: An optional string or list of strings that are assigned as the class of this component in the HTML DOM. Can be used for targeting CSS styles.
+            equal_height: If True, makes every child element have equal height
         """
-        IOComponent.__init__(
-            self,
-            label=label,
-            info=info,
-            every=every,
-            show_label=show_label,
-            interactive=interactive,
-            visible=visible,
-            elem_id=elem_id,
-            elem_classes=elem_classes,
-            value=value,
-            **kwargs,
+        self.variant = variant
+        self.init_x = init_x
+        self.init_y = init_y
+        self.width = width
+        self.drag = drag
+        self.equal_height = equal_height
+        if variant == "compact":
+            self.allow_expected_parents = False
+        BlockContext.__init__(
+            self, visible=visible, elem_id=elem_id, elem_classes=elem_classes, **kwargs
         )
-        TokenInterpretable.__init__(self)
-        self.cleared_value = ""
-        self.type = type
 
     def get_config(self):
         return {
-            "lines": self.lines,
-            "max_lines": self.max_lines,
-            "placeholder": self.placeholder,
-            "value": self.value,
-            "type": self.type,
-            **IOComponent.get_config(self),
+            "type": "floating",
+            "variant": self.variant,
+            "init_x": self.init_x,
+            "init_y": self.init_y,
+            "width": self.width,
+            "drag": self.drag,
+            **super().get_config(),
         }
 
     @staticmethod
     def update(
-        value: str | Literal[_Keywords.NO_VALUE] | None = _Keywords.NO_VALUE,
-        lines: int | None = None,
-        max_lines: int | None = None,
-        placeholder: str | None = None,
-        label: str | None = None,
-        show_label: bool | None = None,
         visible: bool | None = None,
-        interactive: bool | None = None,
-        type: str | None = None,
     ):
         return {
-            "lines": lines,
-            "max_lines": max_lines,
-            "placeholder": placeholder,
-            "label": label,
-            "show_label": show_label,
             "visible": visible,
-            "value": value,
-            "type": type,
-            "interactive": interactive,
             "__type__": "update",
         }
-
-    def preprocess(self, x: str | None) -> str | None:
-        """
-        Preprocesses input (converts it to a string) before passing it to the function.
-        Parameters:
-            x: text
-        Returns:
-            text
-        """
-        return None if x is None else str(x)
-
-    def postprocess(self, y: str | None) -> str | None:
-        """
-        Postproccess the function output y by converting it to a str before passing it to the frontend.
-        Parameters:
-            y: function output to postprocess.
-        Returns:
-            text
-        """
-        return None if y is None else str(y)
-
-    def set_interpret_parameters(
-        self, separator: str = " ", replacement: str | None = None
-    ):
-        """
-        Calculates interpretation score of characters in input by splitting input into tokens, then using a "leave one out" method to calculate the score of each token by removing each token and measuring the delta of the output value.
-        Parameters:
-            separator: Separator to use to split input into tokens.
-            replacement: In the "leave one out" step, the text that the token should be replaced with. If None, the token is removed altogether.
-        """
-        self.interpretation_separator = separator
-        self.interpretation_replacement = replacement
-        return self
-
-    def tokenize(self, x: str) -> tuple[list[str], list[str], None]:
-        """
-        Tokenizes an input string by dividing into "words" delimited by self.interpretation_separator
-        """
-        tokens = x.split(self.interpretation_separator)
-        leave_one_out_strings = []
-        for index in range(len(tokens)):
-            leave_one_out_set = list(tokens)
-            if self.interpretation_replacement is None:
-                leave_one_out_set.pop(index)
-            else:
-                leave_one_out_set[index] = self.interpretation_replacement
-            leave_one_out_strings.append(
-                self.interpretation_separator.join(leave_one_out_set)
-            )
-        return tokens, leave_one_out_strings, None
-
-    def get_masked_inputs(
-        self, tokens: list[str], binary_mask_matrix: list[list[int]]
-    ) -> list[str]:
-        """
-        Constructs partially-masked sentences for SHAP interpretation
-        """
-        masked_inputs = []
-        for binary_mask_vector in binary_mask_matrix:
-            masked_input = np.array(tokens)[np.array(binary_mask_vector, dtype=bool)]
-            masked_inputs.append(self.interpretation_separator.join(masked_input))
-        return masked_inputs
-
-    def get_interpretation_scores(
-        self, x, neighbors, scores: list[float], tokens: list[str], masks=None, **kwargs
-    ) -> list[tuple[str, float]]:
-        """
-        Returns:
-            Each tuple set represents a set of characters and their corresponding interpretation score.
-        """
-        result = []
-        for token, score in zip(tokens, scores):
-            result.append((token, score))
-            result.append((self.interpretation_separator, 0))
-        return result
 
     def style(
         self,
         *,
-        show_copy_button: bool | None = None,
-        container: bool | None = None,
+        equal_height: bool | None = None,
         **kwargs,
     ):
         """
-        This method can be used to change the appearance of the Textbox component.
+        Styles the Floating.
         Parameters:
-            show_copy_button: If True, includes a copy button to copy the text in the textbox. Only applies if show_label is True.
-            container: If True, will place the component in a container - providing some extra padding around the border.
+            equal_height: If True, makes every child element have equal height
         """
-        if show_copy_button is not None:
-            self._style["show_copy_button"] = show_copy_button
-
-        return Component.style(self, container=container, **kwargs)
+        if equal_height is not None:
+            self.equal_height = equal_height
+        return self
 
 
 
