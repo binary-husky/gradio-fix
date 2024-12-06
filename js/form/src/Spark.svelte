@@ -15,26 +15,27 @@
 	let showPopup = false;
 	let popupPosition = { x: 0, y: 0 };
 
-	function handleStorageChange(event: StorageEvent) {
-		if (event.key === "conversation_history") {
-			conversationHistory = JSON.parse(event.newValue || "[]");
-			console.log("Conversation History Updated:", conversationHistory);
-		}
-	}
-
-	onMount(() => {
-		window.addEventListener("storage", handleStorageChange);
-
-		// Initial load
+	// 创建自定义事件
+	const LOCAL_STORAGE_UPDATED = "gptac_conversation_history_updated";
+	function handleStorageChange(event: Event) {
+		const storageEvent = event as CustomEvent;
+		// if (storageEvent.detail?.key === "conversation_history") {
+		// 	conversationHistory = JSON.parse(storageEvent.detail.newValue || "[]");
+		// 	console.log("Conversation History Updated:", conversationHistory);
+		// }
+		// console.log("Conversation History Updated:");
 		conversationHistory = JSON.parse(
 			localStorage.getItem("conversation_history") || "[]"
 		);
-		// debug
-		conversationHistory = ["a", "b", "c"];
-		console.log("Initial Conversation History:", conversationHistory);
+	}
 
+	onMount(() => {
+		conversationHistory = JSON.parse(
+			localStorage.getItem("conversation_history") || "[]"
+		);
+		window.addEventListener(LOCAL_STORAGE_UPDATED, handleStorageChange);
 		return () => {
-			window.removeEventListener("storage", handleStorageChange);
+			window.removeEventListener(LOCAL_STORAGE_UPDATED, handleStorageChange);
 		};
 	});
 
@@ -45,10 +46,6 @@
 		change: string;
 		submit: undefined;
 	}>();
-
-	function handle_change(val: string) {
-		dispatch("change", val);
-	}
 
 	function handleDotClick(event: MouseEvent, index: number) {
 		selectedItemIndex = index;
@@ -91,6 +88,11 @@
 		} else if (action === "duplicate") {
 			const itemToDuplicate = conversationHistory[selectedItemIndex];
 			conversationHistory = [itemToDuplicate, ...conversationHistory];
+			window.dispatchEvent(
+				new CustomEvent("gptac_restore_chat_from_local_storage", {
+					detail: itemToDuplicate
+				})
+			);
 		}
 
 		// Save to localStorage
@@ -99,6 +101,10 @@
 			JSON.stringify(conversationHistory)
 		);
 		showPopup = false;
+	}
+
+	function handle_change(val: string) {
+		dispatch("change", val);
 	}
 </script>
 
@@ -115,7 +121,7 @@
 					role="button"
 					tabindex="0"
 				>
-					<span class="tooltip">{item}</span>
+					<span class="tooltip">{item.preview}</span>
 				</div>
 			</div>
 		{/each}
@@ -130,7 +136,7 @@
 			<div class="modal-content">
 				<h3>对话内容</h3>
 				<p class="conversation-text">
-					{conversationHistory[selectedItemIndex]}
+					{conversationHistory[selectedItemIndex]?.preview}
 				</p>
 				<div class="button-group">
 					<button on:click={() => handleAction("delete")}>删除对话</button>
@@ -146,7 +152,7 @@
 <style>
 	.spark-container {
 		position: fixed;
-		left: 20px;
+		left: 3px;
 		top: 50%;
 		transform: translateY(-50%);
 		z-index: 1000;
@@ -156,7 +162,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: 20px;
+		padding: 6px;
 		gap: 0px;
 	}
 
@@ -169,22 +175,23 @@
 
 	.dot {
 		position: relative;
-		width: 12px;
-		height: 12px;
+		width: 7px;
+		height: 7px;
 		background-color: #ffd700;
 		cursor: pointer;
 		transition: all 0.3s ease;
+		transform: rotate(45deg);
 	}
 
 	.dot:hover::after {
 		content: "";
 		position: absolute;
-		width: 17px;
-		height: 17px;
+		width: 10px;
+		height: 10px;
 		background-color: #ff0000;
 		top: 50%;
 		left: 50%;
-		transform: translate(-50%, -50%);
+		transform: translate(-50%, -50%) rotate(45deg);
 		z-index: -1;
 	}
 
@@ -237,12 +244,13 @@
 	}
 
 	.modal {
-		background: white;
+		background: rgba(var(--background-fill-primary), 0.99);
 		border-radius: 8px;
 		padding: 20px;
 		width: 400px;
 		position: relative;
-		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.507);
+		backdrop-filter: blur(4px);
 	}
 
 	.close-button {
@@ -263,7 +271,7 @@
 	}
 
 	.close-button:hover {
-		background-color: #f0f0f0;
+		background-color: var(--neutral-800);
 	}
 
 	.modal-content {
@@ -278,7 +286,7 @@
 	.conversation-text {
 		margin: 15px 0;
 		padding: 10px;
-		background-color: #f5f5f5;
+		background-color: var(--neutral-500);
 		border-radius: 4px;
 		min-height: 60px;
 	}
@@ -295,11 +303,11 @@
 		border: none;
 		border-radius: 4px;
 		cursor: pointer;
-		background-color: #f0f0f0;
+		background-color: var(--neutral-800);
 		transition: background-color 0.2s;
 	}
 
 	.button-group button:hover {
-		background-color: #e0e0e0;
+		background-color: var(--secondary-500);
 	}
 </style>
