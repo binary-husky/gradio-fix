@@ -80,6 +80,25 @@
 		on:mousedown={handleMouseDown}
 	>
 		拖动此处 (drag here to move)
+		<button
+			class="close-button"
+			on:click={() => {
+				console.log("clicked");
+				push_data_to_gradio_component(
+					{
+						visible: false,
+						__type__: "update"
+					},
+					elem_id,
+					"obj"
+				);
+				// visible = false;
+			}}
+			class:hide={!visible}
+			style="position: absolute; right: 5px;"
+		>
+			×
+		</button>
 	</div>
 	<slot />
 </div>
@@ -129,5 +148,9 @@
 		top: var(--init_y);
 		overflow: visible;
 		gap: var(--layout-gap);
+	}
+
+	.close-button:hover {
+		background-color: var(--primary-500);
 	}
 </style>

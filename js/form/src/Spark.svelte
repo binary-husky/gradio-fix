@@ -14,16 +14,16 @@
 	let selectedItemIndex: number | null = null;
 	let showPopup = false;
 	let popupPosition = { x: 0, y: 0 };
+	let isRestoring = false;
 
 	// 创建自定义事件
 	const LOCAL_STORAGE_UPDATED = "gptac_conversation_history_updated";
 	function handleStorageChange(event: Event) {
 		const storageEvent = event as CustomEvent;
-		// if (storageEvent.detail?.key === "conversation_history") {
-		// 	conversationHistory = JSON.parse(storageEvent.detail.newValue || "[]");
-		// 	console.log("Conversation History Updated:", conversationHistory);
-		// }
-		// console.log("Conversation History Updated:");
+		isRestoring = true;
+		setTimeout(() => {
+			isRestoring = false;
+		}, 1000); // Reset after 1 second
 		conversationHistory = JSON.parse(
 			localStorage.getItem("conversation_history") || "[]"
 		);
@@ -50,33 +50,10 @@
 	function handleDotClick(event: MouseEvent, index: number) {
 		selectedItemIndex = index;
 		showPopup = true;
-
-		// // Calculate initial position at mouse cursor
-		// let x = event.clientX + 5;
-		// let y = event.clientY + 5;
-
-		// // Ensure popup stays within viewport
-		// const viewportWidth = window.innerWidth;
-		// const viewportHeight = window.innerHeight;
-		// const popupWidth = 100; // Approximate popup width
-		// const popupHeight = 120; // Approximate popup height
-
-		// // Adjust if popup would go beyond right edge
-		// if (x + popupWidth > viewportWidth) {
-		// 	x = viewportWidth - popupWidth - 5;
-		// }
-
-		// // Adjust if popup would go beyond bottom edge
-		// if (y + popupHeight > viewportHeight) {
-		// 	y = viewportHeight - popupHeight - 5;
-		// }
-
-		// popupPosition = { x, y };
-		// console.log(popupPosition);
 	}
 
 	function handleAction(
-		action: "delete" | "duplicate" | "cancel" | "delete_all"
+		action: "delete" | "restore" | "cancel" | "delete_all"
 	) {
 		if (selectedItemIndex === null || action === "cancel") {
 			showPopup = false;
@@ -87,12 +64,21 @@
 			conversationHistory = conversationHistory.filter(
 				(_, i) => i !== selectedItemIndex
 			);
-		} else if (action === "duplicate") {
-			const itemToDuplicate = conversationHistory[selectedItemIndex];
-			conversationHistory = [itemToDuplicate, ...conversationHistory];
+		} else if (action === "restore") {
+			isRestoring = true;
+			setTimeout(() => {
+				isRestoring = false;
+			}, 1000); // Reset after 1 second
+
+			const itemToMove = conversationHistory[selectedItemIndex];
+			itemToMove.timestamp = new Date().toISOString();
+			conversationHistory = [
+				itemToMove,
+				...conversationHistory.filter((_, i) => i !== selectedItemIndex)
+			];
 			window.dispatchEvent(
 				new CustomEvent("gptac_restore_chat_from_local_storage", {
-					detail: itemToDuplicate
+					detail: itemToMove
 				})
 			);
 		} else if (action === "delete_all") {
@@ -112,12 +98,14 @@
 	}
 </script>
 
-<div class="spark-container">
+<div class="spark-container" class:restoring={isRestoring}>
 	<div class="dot-chain">
 		{#each conversationHistory as item, index}
 			<div class="dot-container">
 				{#if index !== 0}
 					<div class="connecting-line"></div>
+				{:else}
+					<div class="connecting-line-half"></div>
 				{/if}
 				<div
 					class="dot"
@@ -127,6 +115,9 @@
 				>
 					<p class="tooltip">{item.preview}</p>
 				</div>
+				{#if index == conversationHistory.length - 1}
+					<div class="connecting-line-half"></div>
+				{/if}
 			</div>
 		{/each}
 	</div>
@@ -143,9 +134,11 @@
 					{conversationHistory[selectedItemIndex]?.preview}
 				</p>
 				<div class="button-group">
-					<button on:click={() => handleAction("duplicate")}>复制</button>
+					<button on:click={() => handleAction("restore")}>恢复</button>
 					<button on:click={() => handleAction("delete")}>删除</button>
-					<button on:click={() => handleAction("delete_all")}>删除全部</button>
+					<button on:click={() => handleAction("delete_all")}
+						>删除全部历史</button
+					>
 				</div>
 			</div>
 		</div>
@@ -156,7 +149,7 @@
 <style>
 	.spark-container {
 		position: fixed;
-		width: 5%;
+		width: 2%;
 		left: 3px;
 		top: 50%;
 		transform: translateY(-50%);
@@ -178,14 +171,20 @@
 		align-items: center;
 	}
 
+	.dot-container:first-child .dot {
+		background-color: var(--first-dot-color, #00ff00);
+	}
+
 	.dot {
 		position: relative;
 		width: 7px;
 		height: 7px;
-		background-color: #ffd700;
+		background-color: #ffd90081;
 		cursor: pointer;
 		transition: all 0.3s ease;
 		transform: rotate(45deg);
+		box-shadow: 0 0 1px #ffd700;
+		filter: blur(0.001px);
 	}
 
 	.dot:hover::after {
@@ -198,6 +197,8 @@
 		left: 50%;
 		transform: translate(-50%, -50%) rotate(45deg);
 		z-index: -1;
+		box-shadow: 0 0 1px #ff0000;
+		filter: blur(0.001px);
 	}
 
 	.dot:hover {
@@ -208,9 +209,17 @@
 	.connecting-line {
 		width: 2px;
 		height: 30px;
-		background-color: #808080;
+		background-color: #80808080;
 		margin: 0px 0;
 	}
+
+	.connecting-line-half {
+		width: 2px;
+		height: 15px;
+		background-color: #80808080;
+		margin: 0px 0;
+	}
+
 	.tooltip {
 		position: absolute;
 		left: 30px;
@@ -318,7 +327,8 @@
 		background-color: var(--secondary-500);
 	}
 
-	.dot-container:first-child .dot {
-		background-color: #00ff00;
+	:global(.restoring) .dot-container:first-child .dot {
+		--first-dot-color: #ff00ff;
+		transition: background-color 0.3s ease;
 	}
 </style>

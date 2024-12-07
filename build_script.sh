@@ -4,7 +4,9 @@ nvm use 18
 bash scripts/build_frontend.sh && bash scripts/install_gradio.sh
 python -m build
 cp ./dist/*.whl ./release
-cp ./dist/gradio-3.32.11-py3-none-any.whl /home/fuqingxu/gpt_academic_private/docs/gradio-3.32.11-py3-none-any.whl
+cp ./dist/gradio-3.32.12-py3-none-any.whl /home/fuqingxu/gpt_academic_private/docs/gradio-3.32.12-py3-none-any.whl
+
+
 
 
 
