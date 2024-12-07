@@ -258,13 +258,14 @@
 	}
 
 	.modal {
-		background: rgba(var(--background-fill-primary), 0.99);
+		background: var(--background-fill-primary);
 		border-radius: 8px;
 		padding: 20px;
 		width: 400px;
 		position: relative;
 		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.507);
 		backdrop-filter: blur(4px);
+		color: var(--body-text-color);
 	}
 
 	.close-button {
@@ -285,7 +286,7 @@
 	}
 
 	.close-button:hover {
-		background-color: var(--neutral-800);
+		background-color: var(--input-background-fill);
 	}
 
 	.modal-content {
@@ -301,7 +302,7 @@
 		margin: 15px 0;
 		padding: 10px;
 		white-space: pre-wrap;
-		background-color: var(--neutral-500);
+		background-color: var(--input-background-fill);
 		border-radius: 4px;
 		min-height: 60px;
 		max-height: 70vh;
@@ -319,7 +320,7 @@
 		border: none;
 		border-radius: 4px;
 		cursor: pointer;
-		background-color: var(--neutral-800);
+		background-color: var(--input-background-fill);
 		transition: background-color 0.2s;
 	}
 
