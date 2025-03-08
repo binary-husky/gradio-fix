@@ -14,15 +14,15 @@
 	let selectedItemIndex: number | null = null;
 	let showPopup = false;
 	let popupPosition = { x: 0, y: 0 };
-	let isRestoring = false;
+	let isDotColorRestoring = false;
 
 	// 创建自定义事件
 	const LOCAL_STORAGE_UPDATED = "gptac_conversation_history_updated";
 	function handleStorageChange(event: Event) {
 		const storageEvent = event as CustomEvent;
-		isRestoring = true;
+		isDotColorRestoring = true;
 		setTimeout(() => {
-			isRestoring = false;
+			isDotColorRestoring = false;
 		}, 1000); // Reset after 1 second
 		conversationHistory = JSON.parse(
 			localStorage.getItem("conversation_history") || "[]"
@@ -65,9 +65,9 @@
 				(_, i) => i !== selectedItemIndex
 			);
 		} else if (action === "restore") {
-			isRestoring = true;
+			isDotColorRestoring = true;
 			setTimeout(() => {
-				isRestoring = false;
+				isDotColorRestoring = false;
 			}, 1000); // Reset after 1 second
 
 			const itemToMove = conversationHistory[selectedItemIndex];
@@ -98,7 +98,7 @@
 	}
 </script>
 
-<div class="spark-container" class:restoring={isRestoring}>
+<div class="spark-container" class:restoring={isDotColorRestoring}>
 	<div class="dot-chain">
 		{#each conversationHistory as item, index}
 			<div class="dot-container">
