@@ -10,6 +10,8 @@ cp ./dist/gradio-3.32.13-py3-none-any.whl /home/fuqingxu/gpt_academic_private/do
 
 
 
+# 关于如何搭建gpt-academic测试环境：见 build_reload_mode.sh
+
 
 
 

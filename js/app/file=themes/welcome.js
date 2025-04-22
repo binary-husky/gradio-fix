@@ -85,7 +85,8 @@ class WelcomeMessage {
         this.card_array = [];
         this.static_welcome_message_previous = [];
         this.reflesh_time_interval = 15 * 1000;
-
+        this.update_time_interval = 2 * 1000;
+        this.major_title = "欢迎使用GPT-Academic";
 
         const reflesh_render_status = () => {
             for (let index = 0; index < this.card_array.length; index++) {
@@ -96,16 +97,31 @@ class WelcomeMessage {
         };
         const pageFocusHandler = new PageFocusHandler();
         pageFocusHandler.addFocusCallback(reflesh_render_status);
+
+        // call update when page size change, call this.update when page size change
+        window.addEventListener('resize', this.update.bind(this));
+        // add a loop to reflesh cards
+        this.startRefleshCards();
+        this.startAutoUpdate();
     }
 
     begin_render() {
         this.update();
     }
 
+    async startAutoUpdate() {
+        // sleep certain time
+        await new Promise(r => setTimeout(r, this.update_time_interval));
+        this.update();
+    }
+
     async startRefleshCards() {
+        // sleep certain time
         await new Promise(r => setTimeout(r, this.reflesh_time_interval));
-        await this.reflesh_cards();
+        // checkout visible status
         if (this.visible) {
+            // if visible, then reflesh cards
+            await this.reflesh_cards();
             setTimeout(() => {
                 this.startRefleshCards.call(this);
             }, 1);
@@ -126,6 +142,7 @@ class WelcomeMessage {
 
         // combine two lists
         this.static_welcome_message_previous = not_shown_previously.concat(already_shown_previously);
+        this.static_welcome_message_previous = this.static_welcome_message_previous.slice(0, this.max_welcome_card_num);
 
         (async () => {
             // 使用 for...of 循环来处理异步操作
@@ -142,8 +159,10 @@ class WelcomeMessage {
                     continue;
                 }
 
-                // 等待动画结束
-                card.addEventListener('transitionend', () => {
+
+                card.classList.add('hide');
+                const timeout = 100; // 与CSS中transition的时间保持一致(0.1s)
+                setTimeout(() => {
                     // 更新卡片信息
                     const message = this.static_welcome_message_previous[index];
                     const title = card.getElementsByClassName('welcome-card-title')[0];
@@ -155,16 +174,14 @@ class WelcomeMessage {
                     text.href = message.url;
                     content.textContent = message.content;
                     card.classList.remove('hide');
-
                     // 等待动画结束
-                    card.addEventListener('transitionend', () => {
-                        card.classList.remove('show');
-                    }, { once: true });
                     card.classList.add('show');
+                    const timeout = 100; // 与CSS中transition的时间保持一致(0.1s)
+                    setTimeout(() => {
+                        card.classList.remove('show');
+                    }, timeout);
+                }, timeout);
 
-                }, { once: true });
-
-                card.classList.add('hide');
 
                 // 等待 250 毫秒
                 await new Promise(r => setTimeout(r, 200));
@@ -190,26 +207,38 @@ class WelcomeMessage {
         return array;
     }
 
-    async update() {
-        // console.log('update')
-        var page_width = document.documentElement.clientWidth;
-        const width_to_hide_welcome = 1000;
-        if (!await this.isChatbotEmpty() || page_width < width_to_hide_welcome) {
-            if (this.visible) {
-                this.removeWelcome();
-                this.visible = false;
-                this.card_array = [];
-                this.static_welcome_message_previous = [];
+    async can_display() {
+        // update the card visibility
+        const elem_chatbot = document.getElementById('gpt-chatbot');
+        const chatbot_top = elem_chatbot.getBoundingClientRect().top;
+        const welcome_card_container = document.getElementsByClassName('welcome-card-container')[0];
+        // detect if welcome card overflow
+        let welcome_card_overflow = false;
+        if (welcome_card_container) {
+            const welcome_card_top = welcome_card_container.getBoundingClientRect().top;
+            if (welcome_card_top < chatbot_top) {
+                welcome_card_overflow = true;
             }
+        }
+        var page_width = document.documentElement.clientWidth;
+        const width_to_hide_welcome = 1200;
+        if (!await this.isChatbotEmpty() || page_width < width_to_hide_welcome || welcome_card_overflow) {
+            // cannot display
+            return false;
+        }
+        return true;
+    }
+
+    async update() {
+        const can_display = await this.can_display();
+        if (can_display && !this.visible) {
+            this.showWelcome();
             return;
         }
-        if (this.visible) {
+        if (!can_display && this.visible) {
+            this.removeWelcome();
             return;
         }
-        // console.log("welcome");
-        this.showWelcome();
-        this.visible = true;
-        this.startRefleshCards();
     }
 
     showCard(message) {
@@ -250,7 +279,7 @@ class WelcomeMessage {
     }
 
     async showWelcome() {
-
+        this.visible = true;
         // 首先，找到想要添加子元素的父元素
         const elem_chatbot = document.getElementById('gpt-chatbot');
 
@@ -261,7 +290,7 @@ class WelcomeMessage {
         // 创建主标题
         const major_title = document.createElement('div');
         major_title.classList.add('welcome-title');
-        major_title.textContent = "欢迎使用GPT-Academic";
+        major_title.textContent = this.major_title;
         welcome_card_container.appendChild(major_title)
 
         // 创建卡片
@@ -276,6 +305,16 @@ class WelcomeMessage {
         });
 
         elem_chatbot.appendChild(welcome_card_container);
+        const can_display = await this.can_display();
+        if (!can_display) {
+            // undo
+            this.visible = false;
+            this.card_array = [];
+            this.static_welcome_message_previous = [];
+            elem_chatbot.removeChild(welcome_card_container);
+            await new Promise(r => setTimeout(r, this.update_time_interval / 2));
+            return;
+        }
 
         // 添加显示动画
         requestAnimationFrame(() => {
@@ -284,15 +323,24 @@ class WelcomeMessage {
     }
 
     async removeWelcome() {
+        this.visible = false;
         // remove welcome-card-container
         const elem_chatbot = document.getElementById('gpt-chatbot');
         const welcome_card_container = document.getElementsByClassName('welcome-card-container')[0];
-        // 添加隐藏动画
+        // begin hide animation
         welcome_card_container.classList.add('hide');
-        // 等待动画结束后再移除元素
         welcome_card_container.addEventListener('transitionend', () => {
             elem_chatbot.removeChild(welcome_card_container);
+            this.card_array = [];
+            this.static_welcome_message_previous = [];
         }, { once: true });
+        // add a fail safe timeout
+        const timeout = 600; // 与 CSS 中 transition 的时间保持一致(1s)
+        setTimeout(() => {
+            if (welcome_card_container.parentNode) {
+                elem_chatbot.removeChild(welcome_card_container);
+            }
+        }, timeout);
     }
 
     async isChatbotEmpty() {
