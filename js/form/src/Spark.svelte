@@ -3,6 +3,7 @@
 	import { get_styles } from "@gradio/utils";
 	import { BlockTitle } from "@gradio/atoms";
 	import type { Styles } from "@gradio/utils";
+	import { fade } from "svelte/transition";
 
 	export let value: string = "";
 	export let style: Styles = {};
@@ -15,9 +16,12 @@
 	let showPopup = false;
 	let popupPosition = { x: 0, y: 0 };
 	let isDotColorRestoring = false;
+	let msg_visible: boolean = false; // 绑定到元素的引用
 
 	// 创建自定义事件
 	const LOCAL_STORAGE_UPDATED = "gptac_conversation_history_updated";
+	const RESET_BTN_CLICKED = "gptac_reset_btn_clicked";
+
 	function handleStorageChange(event: Event) {
 		const storageEvent = event as CustomEvent;
 		isDotColorRestoring = true;
@@ -34,8 +38,18 @@
 			localStorage.getItem("conversation_history") || "[]"
 		);
 		window.addEventListener(LOCAL_STORAGE_UPDATED, handleStorageChange);
+		// Add event listener for showing restore message
+		window.addEventListener(RESET_BTN_CLICKED, () => {
+			// console.log("show_restore_message event triggered");
+			msg_visible = true;
+			setTimeout(() => {
+				// console.log("remove visible");
+				msg_visible = false;
+			}, 2000); // Hide message after 5 seconds
+		});
 		return () => {
 			window.removeEventListener(LOCAL_STORAGE_UPDATED, handleStorageChange);
+			window.removeEventListener(RESET_BTN_CLICKED, () => {});
 		};
 	});
 
@@ -96,6 +110,11 @@
 	function handle_change(val: string) {
 		dispatch("change", val);
 	}
+
+	// Function to demonstrate the restore message (can be triggered externally)
+	function showRestoreMessageDemo() {
+		window.dispatchEvent(new CustomEvent("show_restore_message"));
+	}
 </script>
 
 <div class="spark-container" class:restoring={isDotColorRestoring}>
@@ -105,7 +124,10 @@
 				{#if index !== 0}
 					<div class="connecting-line"></div>
 				{:else}
-					<div class="connecting-line-half"></div>
+					<div class="connecting-line-half-first"></div>
+					{#if msg_visible}
+						<div class="restore-message" transition:fade>点击这里恢复对话</div>
+					{/if}
 				{/if}
 				<div
 					class="dot"
@@ -121,6 +143,10 @@
 			</div>
 		{/each}
 	</div>
+	<!-- Add a button hidden in production but useful for testing -->
+	{#if false}
+		<button on:click={showRestoreMessageDemo}>Test Restore Message</button>
+	{/if}
 </div>
 {#if showPopup}
 	<div class="overlay">
@@ -131,7 +157,9 @@
 			<div class="modal-content">
 				<h3>恢复或删除对话内容</h3>
 				<p class="conversation-text">
-					{conversationHistory[selectedItemIndex]?.preview}
+					{selectedItemIndex !== null
+						? conversationHistory[selectedItemIndex]?.preview
+						: ""}
 				</p>
 				<div class="button-group">
 					<button on:click={() => handleAction("restore")}>恢复</button>
@@ -171,22 +199,42 @@
 		align-items: center;
 	}
 
-	.dot-container:first-child .dot {
-		background-color: var(--first-dot-color, #00ff00);
-	}
-
 	.dot {
 		position: relative;
 		width: 7px;
 		height: 7px;
-		background-color: #ffd90081;
+		background-color: #ffd90000;
 		cursor: pointer;
-		transition: all 0.3s ease;
-		transform: rotate(45deg);
-		box-shadow: 0 0 1px #ffd700;
+		box-shadow: 0 0 1px #ffd70000;
+		background-color: transparent;
 		filter: blur(0.001px);
 	}
 
+	.dot-container:first-child .dot::after {
+		content: "";
+		position: absolute;
+		width: 8px;
+		height: 8px;
+		background-color: var(--first-dot-color, #00ff00);
+		top: 50%;
+		left: 50%;
+		transition: all 0.3s ease;
+		transform: translate(-50%, -50%) rotate(+45deg);
+		z-index: -1;
+		filter: blur(0.001px);
+	}
+	.dot::after {
+		content: "";
+		position: absolute;
+		width: 7px;
+		height: 7px;
+		transition: all 0.5s ease;
+		background-color: #ffd900;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%) rotate(+45deg);
+		filter: blur(0.001px);
+	}
 	.dot:hover::after {
 		content: "";
 		position: absolute;
@@ -195,29 +243,20 @@
 		background-color: #ff0000;
 		top: 50%;
 		left: 50%;
-		transform: translate(-50%, -50%) rotate(45deg);
-		z-index: -1;
-		box-shadow: 0 0 1px #ff0000;
+		transform: translate(-50%, -50%) rotate(-135deg);
 		filter: blur(0.001px);
 	}
 
-	.dot:hover {
-		transform: none;
-		background-color: transparent;
-	}
-
-	.connecting-line {
-		width: 2px;
-		height: 30px;
-		background-color: #80808080;
-		margin: 0px 0;
-	}
-
-	.connecting-line-half {
-		width: 2px;
-		height: 15px;
-		background-color: #80808080;
-		margin: 0px 0;
+	.dot-container:first-child .dot:hover::after {
+		content: "";
+		position: absolute;
+		width: 10px;
+		height: 10px;
+		background-color: #ff0000;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%) rotate(-135deg);
+		filter: blur(0.001px);
 	}
 
 	.tooltip {
@@ -242,6 +281,63 @@
 	.dot:hover .tooltip {
 		opacity: 1;
 		visibility: visible;
+	}
+
+	.connecting-line {
+		width: 2px;
+		height: 30px;
+		background-color: #80808080;
+		border-radius: 2px;
+		z-index: -1;
+		margin: 0px 0;
+	}
+	.connecting-line-half-first {
+		width: 2px;
+		height: 15px;
+		background-color: #80808080;
+		border-radius: 2px;
+		margin: 0px 0;
+	}
+	.connecting-line-half {
+		width: 2px;
+		height: 15px;
+		background-color: #80808080;
+		border-radius: 2px;
+		margin: 0px 0;
+	}
+
+	.restore-message {
+		position: absolute;
+		left: 15px;
+		top: 0%;
+		background-color: #4caf50;
+		color: white;
+		padding: 5px 10px;
+		border-radius: 4px;
+		font-size: 14px;
+		white-space: nowrap;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+		z-index: 1002;
+		opacity: 1; /* 初始不可见 */
+		visibility: visible; /* 防止占用页面空间 */
+		transition:
+			opacity 0.5s ease,
+			visibility 0.5s ease;
+	}
+
+	@keyframes fadeInOut {
+		0% {
+			opacity: 0;
+		}
+		10% {
+			opacity: 1;
+		}
+		80% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
+		}
 	}
 
 	.overlay {
@@ -328,8 +424,8 @@
 		background-color: var(--secondary-500);
 	}
 
-	:global(.restoring) .dot-container:first-child .dot {
-		--first-dot-color: #ff00ff;
+	:global(.restoring) .dot-container:first-child .dot:after {
+		--first-dot-color: #0096fa;
 		transition: background-color 0.3s ease;
 	}
 </style>
